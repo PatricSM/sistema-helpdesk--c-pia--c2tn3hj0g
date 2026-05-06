@@ -1,25 +1,28 @@
-/* 404 Page - Displays when a user attempts to access a non-existent route - translate to the language of the user */
-import { useLocation } from 'react-router-dom'
-import { useEffect } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import { ArrowLeft, AlertOctagon } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
-const NotFound = () => {
+export default function NotFound() {
   const location = useLocation()
 
-  useEffect(() => {
-    console.error('404 Error: User attempted to access non-existent route:', location.pathname)
-  }, [location.pathname])
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">404</h1>
-        <p className="text-xl text-gray-600 mb-4">Oops! Page not found</p>
-        <a href="/" className="text-blue-500 hover:text-blue-700 underline">
-          Return to Home
-        </a>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-5">
+      <div className="text-center max-w-md space-y-3">
+        <div className="h-14 w-14 rounded-full bg-gray-100 flex items-center justify-center mx-auto">
+          <AlertOctagon className="h-7 w-7 text-gray-400" />
+        </div>
+        <h1 className="text-2xl font-semibold tracking-tight">Página não encontrada</h1>
+        <p className="text-sm text-gray-600">
+          A rota{' '}
+          <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">{location.pathname}</code> não
+          existe.
+        </p>
+        <Button asChild variant="outline" className="gap-1.5 mt-2">
+          <Link to="/">
+            <ArrowLeft className="h-4 w-4" /> Voltar para o início
+          </Link>
+        </Button>
       </div>
     </div>
   )
 }
-
-export default NotFound

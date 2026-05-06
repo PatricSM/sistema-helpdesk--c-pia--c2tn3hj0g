@@ -21,6 +21,8 @@
     "README.md",
     "tests/",
     "tsconfig.*",
-    "vite.config.ts"
+    "vite.config.ts",
+    "vite-plugin-react-uid.js",
+    "src/main.tsx"
   ]
 }
