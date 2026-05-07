@@ -19713,12 +19713,9 @@ var df = class extends af {
     initConnect() {
       ;(this.disconnect(!0),
         clearTimeout(this.connectTimeoutId),
-        (this.connectTimeoutId = setTimeout(
-          () => {
-            this.connectErrorHandler(Error(`EventSource connect took too long.`))
-          },
-          this.maxConnectTimeout,
-        )),
+        (this.connectTimeoutId = setTimeout(() => {
+          this.connectErrorHandler(Error(`EventSource connect took too long.`))
+        }, this.maxConnectTimeout)),
         (this.eventSource = new EventSource(this.client.buildURL(`/api/realtime`))),
         (this.eventSource.onerror = (e) => {
           this.connectErrorHandler(Error(`Failed to establish realtime connection.`))
@@ -19768,12 +19765,9 @@ var df = class extends af {
         this.predefinedReconnectIntervals[this.reconnectAttempts] ||
         this.predefinedReconnectIntervals[this.predefinedReconnectIntervals.length - 1]
       ;(this.reconnectAttempts++,
-        (this.reconnectTimeoutId = setTimeout(
-          () => {
-            this.initConnect()
-          },
-          t,
-        )))
+        (this.reconnectTimeoutId = setTimeout(() => {
+          this.initConnect()
+        }, t)))
     }
     disconnect(e = !1) {
       if (
@@ -20243,14 +20237,12 @@ var hf = class extends ff {
       )
   }
   async unlinkExternalAuth(e, t, n) {
-    let r = await this.client
-      .collection(`_externalAuths`)
-      .getFirstListItem(
-        this.client.filter(`recordRef = {:recordId} && provider = {:provider}`, {
-          recordId: e,
-          provider: t,
-        }),
-      )
+    let r = await this.client.collection(`_externalAuths`).getFirstListItem(
+      this.client.filter(`recordRef = {:recordId} && provider = {:provider}`, {
+        recordId: e,
+        provider: t,
+      }),
+    )
     return this.client
       .collection(`_externalAuths`)
       .delete(r.id, n)

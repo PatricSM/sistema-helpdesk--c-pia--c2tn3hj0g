@@ -117,23 +117,36 @@ routerAdd('POST', '/backend/v1/inbound/email', (e) => {
       }
     }
 
-    let autoSubmitted = 'no'
-    let inReplyTo = ''
-    let messageId = ''
-
+    const headersMap = {}
     if (body.headers && Array.isArray(body.headers)) {
       for (const h of body.headers) {
-        const name = String(h.name).toLowerCase()
-        if (name === 'auto-submitted') autoSubmitted = String(h.value).toLowerCase()
-        if (name === 'in-reply-to') inReplyTo = String(h.value)
-        if (name === 'message-id') messageId = String(h.value)
+        if (h.name)
+          headersMap[String(h.name).toLowerCase()] = h.value !== undefined ? String(h.value) : ''
       }
     } else if (body.headers && typeof body.headers === 'object') {
-      autoSubmitted = String(
-        body.headers['Auto-Submitted'] || body.headers['auto-submitted'] || 'no',
-      ).toLowerCase()
-      inReplyTo = String(body.headers['In-Reply-To'] || body.headers['in-reply-to'] || '')
-      messageId = String(body.headers['Message-ID'] || body.headers['message-id'] || '')
+      for (const key in body.headers) {
+        headersMap[String(key).toLowerCase()] =
+          body.headers[key] !== undefined ? String(body.headers[key]) : ''
+      }
+    }
+
+    const inReplyTo = headersMap['in-reply-to'] || ''
+    const messageId = headersMap['message-id'] || ''
+
+    const isAutoMessage = (headers, fromAddr, sysFrom) => {
+      if (sysFrom && fromAddr.includes(sysFrom)) return true
+      if (/(no[-_.]?reply|donotreply|postmaster|mailer-daemon|bounce)/i.test(fromAddr)) return true
+
+      const autoSubmitted = String(headers['auto-submitted'] || 'no').toLowerCase()
+      if (autoSubmitted !== 'no') return true
+
+      const precedence = String(headers['precedence'] || '').toLowerCase()
+      if (['bulk', 'junk', 'list', 'auto_reply'].includes(precedence)) return true
+
+      if (headers['x-auto-response-suppress'] !== undefined) return true
+      if (headers['list-id'] !== undefined || headers['list-unsubscribe'] !== undefined) return true
+
+      return false
     }
 
     const fromAddress = String(body.from || '').toLowerCase()
@@ -141,12 +154,8 @@ routerAdd('POST', '/backend/v1/inbound/email', (e) => {
       $os.getenv('RESEND_FROM') || $secrets.get('RESEND_FROM') || '',
     ).toLowerCase()
 
-    if (
-      autoSubmitted !== 'no' ||
-      fromAddress.includes('noreply') ||
-      (systemFrom && fromAddress.includes(systemFrom))
-    ) {
-      createEmailLog({ ...body, status: 'failed', error: 'Ignored due to loop prevention' })
+    if (isAutoMessage(headersMap, fromAddress, systemFrom)) {
+      createEmailLog({ ...body, status: 'failed', error: 'Loop prevention' })
       return e.json(200, { message: 'Ignored (loop prevention)' })
     }
 
