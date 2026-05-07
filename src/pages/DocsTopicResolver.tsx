@@ -5,8 +5,6 @@ import { HelpKB } from './help/HelpKB'
 import { HelpOrganization } from './help/HelpOrganization'
 import { HelpSLA } from './help/HelpSLA'
 import { HelpNotifications } from './help/HelpNotifications'
-import { HelpShortcuts } from './help/HelpShortcuts'
-import { HelpAPI } from './help/HelpAPI'
 
 const components: Record<string, React.ComponentType> = {
   intro: HelpIntro,
@@ -15,8 +13,6 @@ const components: Record<string, React.ComponentType> = {
   organization: HelpOrganization,
   sla: HelpSLA,
   notifications: HelpNotifications,
-  shortcuts: HelpShortcuts,
-  api: HelpAPI,
 }
 
 export default function DocsTopicResolver() {

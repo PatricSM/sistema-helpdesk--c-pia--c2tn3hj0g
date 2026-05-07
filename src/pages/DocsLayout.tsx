@@ -1,17 +1,7 @@
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
-import {
-  LifeBuoy,
-  Sparkles,
-  Ticket,
-  BookOpen,
-  Tag,
-  Timer,
-  Bell,
-  Keyboard,
-  Code,
-} from 'lucide-react'
+import { LifeBuoy, Sparkles, Ticket, BookOpen, Tag, Timer, Bell } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const TOPICS = [
@@ -21,8 +11,6 @@ const TOPICS = [
   { key: 'organization', label: 'Categorias & Times', icon: Tag, group: 'Funcionalidades' },
   { key: 'sla', label: 'SLA', icon: Timer, group: 'Operação' },
   { key: 'notifications', label: 'Notificações', icon: Bell, group: 'Operação' },
-  { key: 'shortcuts', label: 'Atalhos', icon: Keyboard, group: 'Avançado' },
-  { key: 'api', label: 'API', icon: Code, group: 'Avançado' },
 ]
 
 export default function DocsLayout() {
