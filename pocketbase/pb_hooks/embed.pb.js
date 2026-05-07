@@ -1,55 +1,5 @@
 routerAdd('OPTIONS', '/backend/v1/embed/tickets', (e) => {
-  const getHost = (urlStr) => {
-    if (!urlStr) return ''
-    return String(urlStr)
-      .replace(/^https?:\/\//i, '')
-      .split('/')[0]
-      .split(':')[0]
-      .toLowerCase()
-  }
-
-  const origin = e.request.header.get('Origin') || e.requestInfo().headers['origin']
-  if (!origin) {
-    return e.forbiddenError('Origin required')
-  }
-
-  const reqHost = getHost(origin)
-  let isAuthorized = false
-
-  if (reqHost) {
-    const meta = $app.settings().meta || {}
-    const candidates = [
-      meta.appUrl,
-      meta.appURL,
-      meta.AppURL,
-      $os.getenv('EMBED_BASE_URL'),
-      $os.getenv('VITE_EMBED_BASE_URL'),
-    ].filter(Boolean)
-
-    for (const cand of candidates) {
-      if (getHost(cand) === reqHost) {
-        isAuthorized = true
-        break
-      }
-    }
-  }
-
-  if (!isAuthorized) {
-    try {
-      const keys = $app.findRecordsByFilter('embed_keys', 'is_active = true', '', 1000, 0)
-      for (const key of keys) {
-        const allowed = key.get('allowed_origins') || []
-        if (allowed.includes(origin)) {
-          isAuthorized = true
-          break
-        }
-      }
-    } catch (_) {}
-  }
-
-  if (!isAuthorized) {
-    return e.forbiddenError('Origin not allowed')
-  }
+  const origin = e.request.header.get('Origin') || e.requestInfo().headers['origin'] || '*'
 
   try {
     e.response.header().set('Access-Control-Allow-Origin', origin)
@@ -63,53 +13,12 @@ routerAdd('OPTIONS', '/backend/v1/embed/tickets', (e) => {
 })
 
 routerAdd('POST', '/backend/v1/embed/tickets', (e) => {
-  const getHost = (urlStr) => {
-    if (!urlStr) return ''
-    return String(urlStr)
-      .replace(/^https?:\/\//i, '')
-      .split('/')[0]
-      .split(':')[0]
-      .toLowerCase()
-  }
+  const origin = e.request.header.get('Origin') || e.requestInfo().headers['origin'] || '*'
 
-  const origin = e.request.header.get('Origin') || e.requestInfo().headers['origin']
-  if (!origin) {
-    return e.forbiddenError('Origin required')
-  }
-
-  const reqHost = getHost(origin)
-  let sameOrigin = false
-  let candidates = []
-
-  if (reqHost) {
-    const meta = $app.settings().meta || {}
-    candidates = [
-      meta.appUrl,
-      meta.appURL,
-      meta.AppURL,
-      $os.getenv('EMBED_BASE_URL'),
-      $os.getenv('VITE_EMBED_BASE_URL'),
-    ].filter(Boolean)
-
-    for (const cand of candidates) {
-      if (getHost(cand) === reqHost) {
-        sameOrigin = true
-        break
-      }
-    }
-  }
-
-  $app
-    .logger()
-    .info(
-      'embed: origin validation',
-      'origin',
-      origin,
-      'sameOrigin',
-      sameOrigin,
-      'candidates',
-      candidates.join(', '),
-    )
+  try {
+    e.response.header().set('Access-Control-Allow-Origin', origin)
+    e.response.header().set('Vary', 'Origin')
+  } catch (err) {}
 
   const body = e.requestInfo().body || {}
   const embedKeyStr = body.embed_key
@@ -126,23 +35,6 @@ routerAdd('POST', '/backend/v1/embed/tickets', (e) => {
   if (!specificEmbedKey || !specificEmbedKey.get('is_active')) {
     return e.badRequestError('Embed key is inactive')
   }
-
-  let originAllowed = sameOrigin
-  if (!originAllowed) {
-    const allowed = specificEmbedKey.get('allowed_origins') || []
-    if (allowed.includes(origin)) {
-      originAllowed = true
-    }
-  }
-
-  if (!originAllowed) {
-    return e.forbiddenError('Origin not allowed')
-  }
-
-  try {
-    e.response.header().set('Access-Control-Allow-Origin', origin)
-    e.response.header().set('Vary', 'Origin')
-  } catch (err) {}
 
   const ip = e.request.remoteAddr
 

@@ -252,7 +252,12 @@ export function SettingsEmbedKeys() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Origens Permitidas</Label>
+              <Label>
+                Domínios permitidos
+                <span className="text-xs text-muted-foreground ml-2">
+                  (somente referência — não bloqueia)
+                </span>
+              </Label>
               <Textarea
                 value={formData.allowed_origins}
                 onChange={(e) => setFormData({ ...formData, allowed_origins: e.target.value })}
@@ -260,9 +265,9 @@ export function SettingsEmbedKeys() {
                 rows={3}
               />
               <p className="text-xs text-muted-foreground">
-                Uma URL por linha (ex.: https://meusite.com). O domínio do próprio app (configurado
-                em Settings → Application URL) é sempre permitido. Use esta lista para liberar SITES
-                EXTERNOS que vão hospedar o iframe.
+                Este campo serve apenas como anotação interna de onde a key está sendo usada. A
+                validação de origem foi removida — o endpoint aceita requisições de qualquer site,
+                gated por rate limit + honeypot + LGPD.
               </p>
             </div>
             <div className="space-y-2">

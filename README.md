@@ -29,13 +29,9 @@ npm install
 
 O projeto utiliza variáveis de ambiente para configuração de serviços externos. Consulte o arquivo `.env.example` como referência de configuração.
 
-### Configuração da URL do app (necessária para o modal /docs)
+### Modal "Ainda Tenho Dúvida" e iframe embed
 
-Para que a validação de origem (CORS/Same-Origin) funcione automaticamente no modal interno de suporte (`/docs`), o backend precisa saber qual é a URL oficial do seu frontend. Configure isso de uma das duas formas abaixo:
-- **No Painel Admin do PocketBase**: Vá em *Settings* → *Application URL* e defina a URL do seu frontend (ex: `https://meusite.com`).
-- **Via Variável de Ambiente**: Defina a variável `EMBED_BASE_URL` ou `VITE_EMBED_BASE_URL` no ambiente do backend.
-
-Isso garante que formulários carregados na própria aplicação funcionem sem precisar adicionar a URL manualmente na lista de origens permitidas.
+O endpoint `/backend/v1/embed/tickets` aceita requisições de qualquer origem (CORS *). A configuração "Application URL" no PocketBase Admin não é mais necessária para este fluxo específico.
 
 ### Configuração do Resend
 
@@ -49,16 +45,15 @@ Para o funcionamento correto dos e-mails transacionais e recebimento de tickets 
 Para o funcionamento do formulário de abertura de chamados via Embed ou na Base de Conhecimento Pública, é necessário configurar a chave de embed:
 - **Gerar Embed Key**: Acesse o painel de configurações do sistema (Settings -> Embed Forms), crie um novo Embed Form e copie a chave gerada.
 - **Configurar Variável de Ambiente**: Defina a chave copiada na variável `VITE_DOCS_EMBED_KEY` no arquivo `.env`.
-- **Origens Permitidas**: Same-origin (modal /docs do próprio app) é sempre permitido, independente do allowed_origins da embed_key. Use allowed_origins apenas para liberar sites EXTERNOS que vão hospedar o iframe.
-> A page pública /docs (modal "Ainda Tenho Dúvida") depende de Settings → Application URL estar setado corretamente no PB Admin. Se estiver vazio, criar a embed_key da Docs e adicionar a URL do app em allowed_origins.
+- **Origens Permitidas**: A listagem de domínios em "Allowed Origins" serve apenas para anotação interna. O endpoint de embed agora é aberto (CORS *) para facilitar a integração sem gerenciar domínios complexos.
 
 ### Proteção Anti-Spam (Embed Form)
 
-O formulário público de abertura de chamados (embed e docs) está protegido por uma camada de defesa passiva contra bots:
-- **Honeypot**: Um campo invisível que atrai bots, rejeitando submissões que o preenchem.
-- **Time Check**: Verifica se o tempo de preenchimento foi realista (maior que 2 segundos).
-- **Rate Limit**: Bloqueia excesso de requisições do mesmo IP (máx. 5 por hora).
-- **Origin Allowlist**: Bloqueia submissões de domínios não autorizados na configuração do Embed Key.
+O formulário público de abertura de chamados (embed e docs) está protegido por uma camada de defesa contra bots e spans. As seguintes proteções ativas estão em vigor:
+- **Embed Key Obrigatória**: Necessária em todas as requisições (pode ser ativada/desativada no painel `/settings`).
+- **Honeypot + Time Check**: Campo invisível para despistar bots, e validação se o tempo de preenchimento foi realista (maior que 2 segundos).
+- **Rate Limit**: Limite rigoroso de 5 tickets por IP a cada hora.
+- **LGPD Obrigatória**: Validação de consentimento obrigatório para uso dos dados.
 
 ## 💻 Scripts Disponíveis
 
