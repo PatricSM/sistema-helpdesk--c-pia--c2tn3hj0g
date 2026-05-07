@@ -1,15 +1,15 @@
-import { Link, NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
-import { BookOpen } from 'lucide-react'
+import { BookOpen, MessageCircleQuestion } from 'lucide-react'
 import { getCategories, type CategoryRecord } from '@/services/categories'
+import { AskQuestionDialog } from '@/components/AskQuestionDialog'
 import { getArticles, type KnowledgeBaseRecord } from '@/services/knowledge_base'
 import { cn } from '@/lib/utils'
 
 export function PublicDocsLayout() {
-  const { user, loading } = useAuth()
   const [categories, setCategories] = useState<CategoryRecord[]>([])
+  const [isAskQuestionOpen, setIsAskQuestionOpen] = useState(false)
   const [articles, setArticles] = useState<KnowledgeBaseRecord[]>([])
 
   useEffect(() => {
@@ -30,16 +30,10 @@ export function PublicDocsLayout() {
           <BookOpen className="w-5 h-5 text-primary" />
           <span>Base de Conhecimento</span>
         </div>
-        {!loading &&
-          (user ? (
-            <Button asChild variant="outline" size="sm">
-              <Link to="/">Voltar ao app</Link>
-            </Button>
-          ) : (
-            <Button asChild size="sm">
-              <Link to="/login">Entrar</Link>
-            </Button>
-          ))}
+        <Button size="sm" onClick={() => setIsAskQuestionOpen(true)}>
+          <MessageCircleQuestion className="w-4 h-4 mr-2" />
+          Ainda Tenho Dúvida
+        </Button>
       </header>
 
       <div className="flex-1 flex overflow-hidden h-[calc(100vh-3.5rem)]">
@@ -107,6 +101,8 @@ export function PublicDocsLayout() {
           </div>
         </main>
       </div>
+
+      <AskQuestionDialog open={isAskQuestionOpen} onOpenChange={setIsAskQuestionOpen} />
     </div>
   )
 }
