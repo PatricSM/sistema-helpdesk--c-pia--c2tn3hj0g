@@ -42,6 +42,7 @@ Para o funcionamento do formulário de abertura de chamados via Embed ou na Base
 - **Gerar Embed Key**: Acesse o painel de configurações do sistema (Settings -> Embed Forms), crie um novo Embed Form e copie a chave gerada.
 - **Configurar Variável de Ambiente**: Defina a chave copiada na variável `VITE_DOCS_EMBED_KEY` no arquivo `.env`.
 - **Origens Permitidas**: Same-origin (modal /docs do próprio app) é sempre permitido, independente do allowed_origins da embed_key. Use allowed_origins apenas para liberar sites EXTERNOS que vão hospedar o iframe.
+> A page pública /docs (modal "Ainda Tenho Dúvida") depende de Settings → Application URL estar setado corretamente no PB Admin. Se estiver vazio, criar a embed_key da Docs e adicionar a URL do app em allowed_origins.
 
 ### Proteção Anti-Spam (Embed Form)
 

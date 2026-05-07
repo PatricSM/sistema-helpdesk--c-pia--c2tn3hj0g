@@ -1,9 +1,23 @@
 routerAdd('OPTIONS', '/backend/v1/embed/tickets', (e) => {
-  const isSameOrigin = (req, reqInfo) => {
-    const reqOrigin = req.header.get('Origin') || reqInfo.headers['origin']
+  const isSameOriginAsApp = (reqOrigin) => {
     if (!reqOrigin) return false
-    const originHost = reqOrigin.replace(/^https?:\/\//, '')
-    return originHost === req.host
+    try {
+      const appUrlStr = $app.settings().meta.appUrl || ''
+      if (!appUrlStr) return false
+      const reqHost = reqOrigin
+        .replace(/^https?:\/\//i, '')
+        .split('/')[0]
+        .split(':')[0]
+        .toLowerCase()
+      const appHost = appUrlStr
+        .replace(/^https?:\/\//i, '')
+        .split('/')[0]
+        .split(':')[0]
+        .toLowerCase()
+      return reqHost === appHost && appHost !== ''
+    } catch (_) {
+      return false
+    }
   }
 
   const origin = e.request.header.get('Origin') || e.requestInfo().headers['origin']
@@ -11,14 +25,14 @@ routerAdd('OPTIONS', '/backend/v1/embed/tickets', (e) => {
     return e.forbiddenError('Origin required')
   }
 
-  let isAuthorized = isSameOrigin(e.request, e.requestInfo())
+  let isAuthorized = isSameOriginAsApp(origin)
 
   if (!isAuthorized) {
     try {
       const keys = $app.findRecordsByFilter('embed_keys', 'is_active = true', '', 1000, 0)
       for (const key of keys) {
         const allowed = key.get('allowed_origins') || []
-        if (allowed.length === 0 || allowed.includes(origin)) {
+        if (allowed.includes(origin)) {
           isAuthorized = true
           break
         }
@@ -42,17 +56,31 @@ routerAdd('OPTIONS', '/backend/v1/embed/tickets', (e) => {
 })
 
 routerAdd('POST', '/backend/v1/embed/tickets', (e) => {
-  const isSameOrigin = (req, reqInfo) => {
-    const reqOrigin = req.header.get('Origin') || reqInfo.headers['origin']
+  const isSameOriginAsApp = (reqOrigin) => {
     if (!reqOrigin) return false
-    const originHost = reqOrigin.replace(/^https?:\/\//, '')
-    return originHost === req.host
+    try {
+      const appUrlStr = $app.settings().meta.appUrl || ''
+      if (!appUrlStr) return false
+      const reqHost = reqOrigin
+        .replace(/^https?:\/\//i, '')
+        .split('/')[0]
+        .split(':')[0]
+        .toLowerCase()
+      const appHost = appUrlStr
+        .replace(/^https?:\/\//i, '')
+        .split('/')[0]
+        .split(':')[0]
+        .toLowerCase()
+      return reqHost === appHost && appHost !== ''
+    } catch (_) {
+      return false
+    }
   }
 
   const body = e.requestInfo().body || {}
   const origin = e.request.header.get('Origin') || e.requestInfo().headers['origin']
 
-  let originAllowed = isSameOrigin(e.request, e.requestInfo())
+  let originAllowed = isSameOriginAsApp(origin)
   const embedKeyStr = body.embed_key
   let specificEmbedKey = null
 
@@ -61,21 +89,8 @@ routerAdd('POST', '/backend/v1/embed/tickets', (e) => {
       specificEmbedKey = $app.findFirstRecordByData('embed_keys', 'key', embedKeyStr)
       if (specificEmbedKey.get('is_active') && !originAllowed) {
         const allowed = specificEmbedKey.get('allowed_origins') || []
-        if (allowed.length === 0 || (origin && allowed.includes(origin))) {
+        if (origin && allowed.includes(origin)) {
           originAllowed = true
-        }
-      }
-    } catch (_) {}
-  }
-
-  if (origin && !originAllowed) {
-    try {
-      const keys = $app.findRecordsByFilter('embed_keys', 'is_active = true', '', 1000, 0)
-      for (const key of keys) {
-        const allowed = key.get('allowed_origins') || []
-        if (allowed.length === 0 || allowed.includes(origin)) {
-          originAllowed = true
-          break
         }
       }
     } catch (_) {}
@@ -165,9 +180,13 @@ routerAdd('POST', '/backend/v1/embed/tickets', (e) => {
     return e.badRequestError('Embed key is inactive')
   }
 
-  if (origin && !isSameOrigin(e.request, e.requestInfo())) {
+  if (!origin) {
+    return e.forbiddenError('Origin required')
+  }
+
+  if (!isSameOriginAsApp(origin)) {
     const allowed = specificEmbedKey.get('allowed_origins') || []
-    if (allowed.length > 0 && !allowed.includes(origin)) {
+    if (!allowed.includes(origin)) {
       return e.forbiddenError('Origin not allowed')
     }
   }

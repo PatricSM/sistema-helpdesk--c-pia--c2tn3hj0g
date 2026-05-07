@@ -260,9 +260,9 @@ export function SettingsEmbedKeys() {
                 rows={3}
               />
               <p className="text-xs text-muted-foreground">
-                Uma URL por linha (ex.: https://meusite.com). Deixe vazio se a key será usada apenas
-                no próprio app (página /docs). O domínio do próprio app é sempre permitido
-                automaticamente.
+                Uma URL por linha (ex.: https://meusite.com). O domínio do próprio app (configurado
+                em Settings → Application URL) é sempre permitido. Use esta lista para liberar SITES
+                EXTERNOS que vão hospedar o iframe.
               </p>
             </div>
             <div className="space-y-2">
