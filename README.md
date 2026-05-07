@@ -25,6 +25,17 @@ Este projeto foi criado de ponta a ponta com o [Skip](https://goskip.dev).
 npm install
 ```
 
+## Variáveis de ambiente
+
+O projeto utiliza variáveis de ambiente para configuração de serviços externos. Consulte o arquivo `.env.example` como referência de configuração.
+
+### Configuração do Resend
+
+Para o funcionamento correto dos e-mails transacionais e recebimento de tickets por e-mail, é necessário configurar o Resend com os seguintes passos:
+- **Verificar o domínio**: No painel do Resend, configure os **DKIM/SPF records** em seu provedor de DNS para garantir a entrega.
+- **Registros MX inbound**: Configure os **MX inbound records** em seu DNS para habilitar o recebimento de e-mails para o domínio.
+- **Webhook URL**: Configure a **Webhook URL para incoming emails** no painel do Resend para que as mensagens recebidas sejam enviadas para o seu backend.
+
 ## 💻 Scripts Disponíveis
 
 ### Desenvolvimento

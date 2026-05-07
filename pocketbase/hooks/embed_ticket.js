@@ -77,7 +77,7 @@ routerAdd('POST', '/backend/v1/embed/tickets', (e) => {
       const usersCol = $app.findCollectionByNameOrId('users')
       user = new Record(usersCol)
       user.setEmail(email)
-      user.setPassword($security.randomString(16))
+      user.setPassword($security.randomString(20))
       user.setVerified(true)
       user.set('name', name)
       user.set('role', 'client')

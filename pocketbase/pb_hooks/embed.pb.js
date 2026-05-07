@@ -180,7 +180,7 @@ routerAdd('POST', '/backend/v1/embed/tickets', (e) => {
     const usersCol = $app.findCollectionByNameOrId('users')
     user = new Record(usersCol)
     user.setEmail(requesterEmail)
-    user.setPassword($security.randomString(12) + 'A1@')
+    user.setPassword($security.randomString(20))
     user.set('name', requesterName)
     user.set('role', 'client')
     $app.save(user)
@@ -194,14 +194,7 @@ routerAdd('POST', '/backend/v1/embed/tickets', (e) => {
   ticket.set('status', 'open')
   ticket.set('priority', body.priority || 'medium')
 
-  if (embedKey.get('default_category')) {
-    ticket.set('category', embedKey.get('default_category'))
-  } else {
-    try {
-      const firstCat = $app.findFirstRecordByFilter('categories', "id != ''", 'created')
-      ticket.set('category', firstCat.id)
-    } catch (_) {}
-  }
+  ticket.set('category', embedKey.get('default_category'))
 
   if (embedKey.get('default_team')) {
     ticket.set('team', embedKey.get('default_team'))
