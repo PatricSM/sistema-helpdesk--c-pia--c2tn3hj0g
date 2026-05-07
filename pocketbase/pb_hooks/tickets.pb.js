@@ -84,7 +84,7 @@ onRecordAfterCreateSuccess((e) => {
     const requesterId = ticket.get('requester')
 
     if (requesterId) {
-      const requester = $app.findRecordById('_pb_users_auth_', requesterId)
+      const requester = $app.findRecordById('users', requesterId)
       if (requester && requester.get('email')) {
         const { html, text } = emailHelpers.renderTicketCreated(ticket, requester)
         emailHelpers.sendEmail($app, {
@@ -99,7 +99,7 @@ onRecordAfterCreateSuccess((e) => {
     }
 
     if (assignee && assignee !== requesterId) {
-      const assigneeRecord = $app.findRecordById('_pb_users_auth_', assignee)
+      const assigneeRecord = $app.findRecordById('users', assignee)
       if (assigneeRecord && assigneeRecord.get('email')) {
         const { html, text } = emailHelpers.renderTicketAssigned(ticket, assigneeRecord)
         emailHelpers.sendEmail($app, {

@@ -38,7 +38,7 @@ onRecordAfterCreateSuccess((e) => {
   let authorRole = 'client'
   let authorName = 'Alguém'
   try {
-    const author = $app.findRecordById('_pb_users_auth_', authorId)
+    const author = $app.findRecordById('users', authorId)
     authorRole = author.get('role') || 'client'
     authorName = author.get('name') || author.get('email') || 'Alguém'
   } catch (_) {}
@@ -87,10 +87,10 @@ onRecordAfterCreateSuccess((e) => {
     // Notificação por Email para o requester (se a resposta for de um agente/admin)
     try {
       if (isStaff && requester && requester !== authorId && comment.get('source') !== 'email') {
-        const requesterRecord = $app.findRecordById('_pb_users_auth_', requester)
+        const requesterRecord = $app.findRecordById('users', requester)
         if (requesterRecord && requesterRecord.get('email')) {
           const emailHelpers = require(`${__hooks}/_email.js`)
-          const authorRecord = $app.findRecordById('_pb_users_auth_', authorId)
+          const authorRecord = $app.findRecordById('users', authorId)
           const { html, text } = emailHelpers.renderTicketReply(ticket, comment, authorRecord)
           emailHelpers.sendEmail($app, {
             to: requesterRecord.get('email'),
