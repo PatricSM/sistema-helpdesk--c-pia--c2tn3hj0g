@@ -9,6 +9,7 @@ import {
   Tag,
   GitFork,
   MessageSquareQuote,
+  Link2,
 } from 'lucide-react'
 import { PageHeader } from '@/components/PageHeader'
 import { PageTitle } from '@/components/PageTitle'
@@ -22,6 +23,7 @@ import { SettingsAssignmentRules } from './settings/SettingsAssignmentRules'
 import { SettingsTeams } from './settings/SettingsTeams'
 import { SettingsCategories } from './settings/SettingsCategories'
 import { SettingsCannedResponses } from './settings/SettingsCannedResponses'
+import { SettingsEmbedKeys } from './settings/SettingsEmbedKeys'
 
 interface Tab {
   key: string
@@ -65,6 +67,13 @@ const TABS: Tab[] = [
     icon: MessageSquareQuote,
     group: 'Domínio',
     component: SettingsCannedResponses,
+  },
+  {
+    key: 'embed',
+    label: 'Formulários Embed',
+    icon: Link2,
+    group: 'Integrações',
+    component: SettingsEmbedKeys,
   },
 ]
 

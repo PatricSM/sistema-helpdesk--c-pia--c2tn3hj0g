@@ -31,6 +31,7 @@ import { PublicDocsArticle } from './pages/PublicDocsArticle'
 import { HelpCenterLayout } from './pages/HelpCenterLayout'
 import { HelpTopicResolver } from './pages/HelpTopicResolver'
 import NotFound from './pages/NotFound'
+import EmbedForm from './pages/EmbedForm'
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth()
@@ -48,6 +49,8 @@ const App = () => (
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+
+          <Route path="/embed/form/:key" element={<EmbedForm />} />
 
           <Route path="/docs" element={<PublicDocsLayout />}>
             <Route index element={<PublicDocsHome />} />
