@@ -64,7 +64,7 @@ module.exports = {
           text: options.text,
           reply_to: options.replyTo,
         }),
-        timeout: 15,
+        timeout: 120,
       })
 
       if (res.statusCode >= 200 && res.statusCode < 300) {

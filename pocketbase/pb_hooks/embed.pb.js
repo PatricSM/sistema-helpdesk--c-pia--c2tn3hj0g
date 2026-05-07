@@ -134,7 +134,7 @@ routerAdd('POST', '/backend/v1/embed/tickets', (e) => {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: `secret=${encodeURIComponent(turnstileSecret)}&response=${encodeURIComponent(captchaToken)}&remoteip=${encodeURIComponent(ip)}`,
-      timeout: 10,
+      timeout: 120,
     })
 
     if (res.statusCode !== 200 || !res.json || res.json.success !== true) {
@@ -214,12 +214,6 @@ routerAdd('POST', '/backend/v1/embed/tickets', (e) => {
   $app.save(ticket)
 
   if (userIsNew) {
-    try {
-      $app.requestPasswordReset('users', requesterEmail)
-    } catch (err) {
-      console.error('Failed to request password reset:', err)
-    }
-
     try {
       const baseUrl =
         $os.getenv('EMBED_BASE_URL') || $os.getenv('VITE_EMBED_BASE_URL') || 'http://localhost:5173'
