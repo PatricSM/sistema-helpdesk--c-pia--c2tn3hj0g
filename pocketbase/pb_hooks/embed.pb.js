@@ -45,6 +45,35 @@ routerAdd('POST', '/backend/v1/embed/tickets', (e) => {
     return e.tooManyRequestsError('Rate limit exceeded. Please try again later.')
   }
 
+  const captchaToken = String(body.captcha_token || '').trim()
+  if (!captchaToken) {
+    return e.badRequestError('captcha_token required')
+  }
+
+  const turnstileSecret = $os.getenv('TURNSTILE_SECRET')
+  if (!turnstileSecret) {
+    return e.internalServerError('Captcha not configured')
+  }
+
+  try {
+    const res = $http.send({
+      url: 'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `secret=${encodeURIComponent(turnstileSecret)}&response=${encodeURIComponent(captchaToken)}&remoteip=${encodeURIComponent(ip)}`,
+      timeout: 10,
+    })
+
+    if (res.statusCode !== 200 || !res.json || res.json.success !== true) {
+      return e.forbiddenError('Captcha verification failed')
+    }
+  } catch (err) {
+    console.error('Captcha verification error:', err)
+    return e.internalServerError('Captcha verification error')
+  }
+
   const embedKeyStr = body.embed_key
   if (!embedKeyStr) return e.badRequestError('Missing embed_key')
 
