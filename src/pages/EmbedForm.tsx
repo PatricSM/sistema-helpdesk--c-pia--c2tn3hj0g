@@ -35,14 +35,18 @@ export default function EmbedForm() {
     setErrorMessage('')
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_POCKETBASE_URL}/backend/v1/embed/tickets`, {
+      const res = await fetch(`/backend/v1/embed/tickets`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           embed_key: key,
           honeypot: formData.website,
           loaded_at: formLoadedAt,
-          ...formData,
+          name: formData.name,
+          email: formData.email,
+          title: formData.subject,
+          description: formData.description,
+          lgpd: formData.lgpd,
         }),
       })
 
