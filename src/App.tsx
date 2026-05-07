@@ -25,7 +25,8 @@ import Agents from './pages/Agents'
 import Notifications from './pages/Notifications'
 import Search from './pages/Search'
 import Settings from './pages/Settings'
-import Help from './pages/Help'
+import DocsLayout from './pages/DocsLayout'
+import DocsTopicResolver from './pages/DocsTopicResolver'
 import NotFound from './pages/NotFound'
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -44,6 +45,10 @@ const App = () => (
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/docs" element={<DocsLayout />}>
+            <Route index element={<Navigate to="/docs/intro" replace />} />
+            <Route path=":topic" element={<DocsTopicResolver />} />
+          </Route>
           <Route
             element={
               <ProtectedRoute>
@@ -77,7 +82,6 @@ const App = () => (
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/search" element={<Search />} />
             <Route path="/settings" element={<Settings />} />
-            <Route path="/help" element={<Help />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
