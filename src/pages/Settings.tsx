@@ -10,6 +10,7 @@ import {
   GitFork,
   MessageSquareQuote,
   Link2,
+  Mail,
 } from 'lucide-react'
 import { PageHeader } from '@/components/PageHeader'
 import { PageTitle } from '@/components/PageTitle'
@@ -24,6 +25,7 @@ import { SettingsTeams } from './settings/SettingsTeams'
 import { SettingsCategories } from './settings/SettingsCategories'
 import { SettingsCannedResponses } from './settings/SettingsCannedResponses'
 import { SettingsEmbedKeys } from './settings/SettingsEmbedKeys'
+import { SettingsEmailLog } from './settings/SettingsEmailLog'
 
 interface Tab {
   key: string
@@ -74,6 +76,13 @@ const TABS: Tab[] = [
     icon: Link2,
     group: 'Integrações',
     component: SettingsEmbedKeys,
+  },
+  {
+    key: 'email',
+    label: 'Logs de Email',
+    icon: Mail,
+    group: 'Auditoria',
+    component: SettingsEmailLog,
   },
 ]
 

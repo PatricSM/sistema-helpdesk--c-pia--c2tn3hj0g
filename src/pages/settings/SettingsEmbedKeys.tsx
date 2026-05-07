@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
-import { Plus, Copy, Edit, Check } from 'lucide-react'
+import { Plus, Copy, Edit, Check, Trash2 } from 'lucide-react'
 import pb from '@/lib/pocketbase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
@@ -21,6 +22,16 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
   Table,
   TableBody,
   TableCell,
@@ -28,13 +39,16 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
+import { getEmbedKeys, createEmbedKey, updateEmbedKey, deleteEmbedKey } from '@/services/embed_keys'
 
 export function SettingsEmbedKeys() {
   const [keys, setKeys] = useState<any[]>([])
   const [categories, setCategories] = useState<any[]>([])
   const [teams, setTeams] = useState<any[]>([])
   const [open, setOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+
   const [formData, setFormData] = useState<any>({
     name: '',
     allowed_origins: '',
@@ -47,7 +61,7 @@ export function SettingsEmbedKeys() {
   const loadData = async () => {
     try {
       const [k, c, t] = await Promise.all([
-        pb.collection('embed_keys').getFullList({ expand: 'default_category,default_team' }),
+        getEmbedKeys(),
         pb.collection('categories').getFullList(),
         pb.collection('teams').getFullList(),
       ])
@@ -71,7 +85,7 @@ export function SettingsEmbedKeys() {
         allowed_origins:
           typeof formData.allowed_origins === 'string'
             ? formData.allowed_origins
-                .split(',')
+                .split('\n')
                 .map((s: string) => s.trim())
                 .filter(Boolean)
             : formData.allowed_origins,
@@ -82,9 +96,9 @@ export function SettingsEmbedKeys() {
       }
 
       if (formData.id) {
-        await pb.collection('embed_keys').update(formData.id, payload)
+        await updateEmbedKey(formData.id, payload)
       } else {
-        await pb.collection('embed_keys').create(payload)
+        await createEmbedKey(payload)
       }
       toast({ title: 'Sucesso', description: 'Embed salvo com sucesso.' })
       setOpen(false)
@@ -94,9 +108,32 @@ export function SettingsEmbedKeys() {
     }
   }
 
+  const handleToggleActive = async (id: string, currentStatus: boolean) => {
+    try {
+      await updateEmbedKey(id, { is_active: !currentStatus })
+      toast({ title: 'Status atualizado com sucesso' })
+      loadData()
+    } catch (e: any) {
+      toast({ title: 'Erro ao atualizar', description: e.message, variant: 'destructive' })
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!selectedId) return
+    try {
+      await deleteEmbedKey(selectedId)
+      toast({ title: 'Embed removido com sucesso' })
+      setDeleteOpen(false)
+      loadData()
+    } catch (e: any) {
+      toast({ title: 'Erro ao remover', description: e.message, variant: 'destructive' })
+    }
+  }
+
   const [copiedId, setCopiedId] = useState('')
   const handleCopy = (keyStr: string, id: string) => {
-    const html = `<iframe src="${window.location.origin}/embed/form/${keyStr}" width="100%" height="600" frameborder="0"></iframe>`
+    const baseUrl = import.meta.env.VITE_EMBED_BASE_URL || window.location.origin
+    const html = `<iframe src="${baseUrl}/embed/form/${keyStr}" width="100%" height="600" frameborder="0"></iframe>`
     navigator.clipboard.writeText(html)
     setCopiedId(id)
     setTimeout(() => setCopiedId(''), 2000)
@@ -133,7 +170,7 @@ export function SettingsEmbedKeys() {
             <TableRow>
               <TableHead>Nome</TableHead>
               <TableHead>Categoria Padrão</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead>Ativo</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -150,9 +187,10 @@ export function SettingsEmbedKeys() {
                 <TableCell className="font-medium">{k.name}</TableCell>
                 <TableCell>{k.expand?.default_category?.name}</TableCell>
                 <TableCell>
-                  <Badge variant={k.is_active ? 'default' : 'secondary'}>
-                    {k.is_active ? 'Ativo' : 'Inativo'}
-                  </Badge>
+                  <Switch
+                    checked={k.is_active}
+                    onCheckedChange={() => handleToggleActive(k.id, k.is_active)}
+                  />
                 </TableCell>
                 <TableCell className="text-right space-x-2">
                   <Button
@@ -162,7 +200,7 @@ export function SettingsEmbedKeys() {
                     title="Copiar HTML do iframe"
                   >
                     {copiedId === k.id ? (
-                      <Check className="w-4 h-4" />
+                      <Check className="w-4 h-4 text-green-500" />
                     ) : (
                       <Copy className="w-4 h-4" />
                     )}
@@ -174,13 +212,23 @@ export function SettingsEmbedKeys() {
                       setFormData({
                         ...k,
                         allowed_origins: Array.isArray(k.allowed_origins)
-                          ? k.allowed_origins.join(', ')
+                          ? k.allowed_origins.join('\n')
                           : '',
                       })
                       setOpen(true)
                     }}
                   >
                     <Edit className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedId(k.id)
+                      setDeleteOpen(true)
+                    }}
+                  >
+                    <Trash2 className="w-4 h-4" />
                   </Button>
                 </TableCell>
               </TableRow>
@@ -205,13 +253,14 @@ export function SettingsEmbedKeys() {
             </div>
             <div className="space-y-2">
               <Label>Origens Permitidas</Label>
-              <Input
+              <Textarea
                 value={formData.allowed_origins}
                 onChange={(e) => setFormData({ ...formData, allowed_origins: e.target.value })}
-                placeholder="ex: https://meusite.com, *"
+                placeholder="https://meusite.com&#10;https://outro.com"
+                rows={3}
               />
               <p className="text-xs text-muted-foreground">
-                Separe por vírgulas. Use * para permitir qualquer origem.
+                Uma URL por linha. Use * para permitir qualquer origem.
               </p>
             </div>
             <div className="space-y-2">
@@ -266,6 +315,23 @@ export function SettingsEmbedKeys() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover Embed</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. Isso excluirá permanentemente a chave de integração.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+              Continuar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
