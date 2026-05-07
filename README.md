@@ -36,6 +36,14 @@ Para o funcionamento correto dos e-mails transacionais e recebimento de tickets 
 - **Registros MX inbound**: Configure os **MX inbound records** em seu DNS para habilitar o recebimento de e-mails para o domínio.
 - **Webhook URL**: Configure a **Webhook URL para incoming emails** no painel do Resend para que as mensagens recebidas sejam enviadas para o seu backend.
 
+### Proteção Anti-Spam (Embed Form)
+
+O formulário público de abertura de chamados (embed) está protegido por uma camada de defesa passiva contra bots:
+- **Honeypot**: Um campo invisível que atrai bots, rejeitando submissões que o preenchem.
+- **Time Check**: Verifica se o tempo de preenchimento foi realista (maior que 2 segundos).
+- **Rate Limit**: Bloqueia excesso de requisições do mesmo IP (máx. 5 por hora).
+- **Origin Allowlist**: Bloqueia submissões de domínios não autorizados na configuração do Embed Key.
+
 ## 💻 Scripts Disponíveis
 
 ### Desenvolvimento

@@ -116,33 +116,26 @@ routerAdd('POST', '/backend/v1/embed/tickets', (e) => {
     return e.tooManyRequestsError('Rate limit exceeded. Please try again later.')
   }
 
-  const captchaToken = String(body.captcha_token || '').trim()
-  if (!captchaToken) {
-    return e.badRequestError('captcha_token required')
+  const honeypot = String(body.honeypot || '').trim()
+  if (honeypot) {
+    $app.logger().info('embed: honeypot triggered', 'ip', ip)
+    return e.json(200, { success: true, ticketId: 'discarded' })
   }
 
-  const turnstileSecret = $os.getenv('TURNSTILE_SECRET')
-  if (!turnstileSecret) {
-    return e.internalServerError('Captcha not configured')
+  const loadedAt = Number(body.loaded_at)
+  if (!loadedAt) {
+    $app.logger().info('embed: time check failed', 'ip', ip, 'reason', 'missing loaded_at')
+    return e.json(200, { success: true, ticketId: 'discarded' })
   }
 
-  try {
-    const res = $http.send({
-      url: 'https://challenges.cloudflare.com/turnstile/v0/siteverify',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: `secret=${encodeURIComponent(turnstileSecret)}&response=${encodeURIComponent(captchaToken)}&remoteip=${encodeURIComponent(ip)}`,
-      timeout: 120,
-    })
+  const elapsedMs = Date.now() - loadedAt
+  if (elapsedMs < 2000) {
+    $app.logger().info('embed: time check failed', 'ip', ip, 'elapsedMs', elapsedMs)
+    return e.json(200, { success: true, ticketId: 'discarded' })
+  }
 
-    if (res.statusCode !== 200 || !res.json || res.json.success !== true) {
-      return e.forbiddenError('Captcha verification failed')
-    }
-  } catch (err) {
-    console.error('Captcha verification error:', err)
-    return e.internalServerError('Captcha verification error')
+  if (Math.abs(elapsedMs) > 3600000) {
+    return e.badRequestError('Invalid form session')
   }
 
   if (!embedKeyStr) return e.badRequestError('Missing embed_key')

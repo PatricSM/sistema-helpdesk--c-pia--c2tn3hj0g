@@ -8,15 +8,6 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { CheckCircle2, AlertCircle } from 'lucide-react'
 
-declare global {
-  interface Window {
-    onloadTurnstileCallback?: () => void
-    turnstile?: {
-      render: (id: string, options: any) => void
-    }
-  }
-}
-
 export default function EmbedForm() {
   const { key } = useParams()
   const [formData, setFormData] = useState({
@@ -24,34 +15,16 @@ export default function EmbedForm() {
     email: '',
     subject: '',
     description: '',
+    website: '',
     lgpd: false,
   })
-  const [captchaToken, setCaptchaToken] = useState('')
+  const [formLoadedAt, setFormLoadedAt] = useState<number>(0)
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
   const [ticketId, setTicketId] = useState('')
 
   useEffect(() => {
-    const script = document.createElement('script')
-    script.src =
-      'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onloadTurnstileCallback&render=explicit'
-    script.async = true
-    script.defer = true
-    document.head.appendChild(script)
-
-    window.onloadTurnstileCallback = function () {
-      if (window.turnstile) {
-        window.turnstile.render('#turnstile-widget', {
-          sitekey: import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA',
-          callback: function (token: string) {
-            setCaptchaToken(token)
-          },
-        })
-      }
-    }
-    return () => {
-      delete window.onloadTurnstileCallback
-    }
+    setFormLoadedAt(Date.now())
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -70,7 +43,8 @@ export default function EmbedForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           embed_key: key,
-          captcha_token: captchaToken,
+          honeypot: formData.website,
+          loaded_at: formLoadedAt,
           ...formData,
         }),
       })
@@ -165,6 +139,30 @@ export default function EmbedForm() {
           />
         </div>
 
+        <div
+          style={{
+            position: 'absolute',
+            left: '-9999px',
+            top: '-9999px',
+            width: '1px',
+            height: '1px',
+            overflow: 'hidden',
+          }}
+          aria-hidden="true"
+        >
+          <label htmlFor="hp-website">Website</label>
+          <input
+            id="hp-website"
+            name="website"
+            type="text"
+            tabIndex={-1}
+            autoComplete="off"
+            value={formData.website}
+            onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+            disabled={status === 'submitting'}
+          />
+        </div>
+
         <div className="flex items-center space-x-2">
           <Checkbox
             id="lgpd"
@@ -176,8 +174,6 @@ export default function EmbedForm() {
             Concordo com os Termos e Condições (LGPD)
           </Label>
         </div>
-
-        <div id="turnstile-widget" className="min-h-[65px]"></div>
 
         <Button type="submit" className="w-full" disabled={status === 'submitting'}>
           {status === 'submitting' ? 'Enviando...' : 'Enviar Chamado'}
