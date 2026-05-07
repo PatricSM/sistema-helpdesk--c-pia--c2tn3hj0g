@@ -111,4 +111,37 @@ routerAdd('POST', '/backend/v1/embed/tickets', (e) => {
     const usersCol = $app.findCollectionByNameOrId('users')
     user = new Record(usersCol)
     user.setEmail(requesterEmail)
-    user.setPassword
+    user.setPassword($security.randomString(12) + 'A1@')
+    user.set('name', requesterName)
+    user.set('role', 'client')
+    $app.save(user)
+  }
+
+  const ticketsCol = $app.findCollectionByNameOrId('tickets')
+  const ticket = new Record(ticketsCol)
+  ticket.set('title', body.title)
+  ticket.set('description', body.description)
+  ticket.set('status', 'open')
+  ticket.set('priority', body.priority || 'medium')
+
+  if (embedKey.get('default_category')) {
+    ticket.set('category', embedKey.get('default_category'))
+  } else {
+    try {
+      const firstCat = $app.findFirstRecordByFilter('categories', "id != ''", 'created')
+      ticket.set('category', firstCat.id)
+    } catch (_) {}
+  }
+
+  if (embedKey.get('default_team')) {
+    ticket.set('team', embedKey.get('default_team'))
+  }
+
+  ticket.set('requester', user.id)
+  ticket.set('source', 'embed')
+  ticket.set('embed_key', embedKey.id)
+
+  $app.save(ticket)
+
+  return e.json(200, { success: true, ticketId: ticket.id })
+})
