@@ -1,5 +1,76 @@
+routerAdd('OPTIONS', '/backend/v1/embed/tickets', (e) => {
+  const origin = e.request.header.get('Origin') || e.requestInfo().headers['origin']
+  if (!origin) {
+    return e.forbiddenError('Origin required')
+  }
+
+  let isAuthorized = false
+  try {
+    const keys = $app.findRecordsByFilter('embed_keys', 'is_active = true', '', 1000, 0)
+    for (const key of keys) {
+      const allowed = key.get('allowed_origins') || []
+      if (allowed.length === 0 || allowed.includes(origin)) {
+        isAuthorized = true
+        break
+      }
+    }
+  } catch (_) {}
+
+  if (!isAuthorized) {
+    return e.forbiddenError('Origin not allowed')
+  }
+
+  try {
+    e.response.header().set('Access-Control-Allow-Origin', origin)
+    e.response.header().set('Access-Control-Allow-Methods', 'POST, OPTIONS')
+    e.response.header().set('Access-Control-Allow-Headers', 'Content-Type')
+    e.response.header().set('Access-Control-Max-Age', '600')
+    e.response.header().set('Vary', 'Origin')
+  } catch (err) {}
+
+  return e.noContent(204)
+})
+
 routerAdd('POST', '/backend/v1/embed/tickets', (e) => {
   const body = e.requestInfo().body || {}
+  const origin = e.request.header.get('Origin') || e.requestInfo().headers['origin']
+
+  let originAllowed = false
+  const embedKeyStr = body.embed_key
+  let specificEmbedKey = null
+
+  if (embedKeyStr) {
+    try {
+      specificEmbedKey = $app.findFirstRecordByData('embed_keys', 'key', embedKeyStr)
+      if (specificEmbedKey.get('is_active')) {
+        const allowed = specificEmbedKey.get('allowed_origins') || []
+        if (allowed.length === 0 || (origin && allowed.includes(origin))) {
+          originAllowed = true
+        }
+      }
+    } catch (_) {}
+  }
+
+  if (origin && !originAllowed) {
+    try {
+      const keys = $app.findRecordsByFilter('embed_keys', 'is_active = true', '', 1000, 0)
+      for (const key of keys) {
+        const allowed = key.get('allowed_origins') || []
+        if (allowed.length === 0 || allowed.includes(origin)) {
+          originAllowed = true
+          break
+        }
+      }
+    } catch (_) {}
+  }
+
+  if (originAllowed && origin) {
+    try {
+      e.response.header().set('Access-Control-Allow-Origin', origin)
+      e.response.header().set('Vary', 'Origin')
+    } catch (err) {}
+  }
+
   const ip = e.request.remoteAddr
 
   const limitCount = 5
@@ -74,27 +145,24 @@ routerAdd('POST', '/backend/v1/embed/tickets', (e) => {
     return e.internalServerError('Captcha verification error')
   }
 
-  const embedKeyStr = body.embed_key
   if (!embedKeyStr) return e.badRequestError('Missing embed_key')
 
-  let embedKey
-  try {
-    embedKey = $app.findFirstRecordByData('embed_keys', 'key', embedKeyStr)
-  } catch (_) {
+  if (!specificEmbedKey) {
     return e.badRequestError('Invalid embed_key')
   }
 
-  if (!embedKey.get('is_active')) {
+  if (!specificEmbedKey.get('is_active')) {
     return e.badRequestError('Embed key is inactive')
   }
 
-  const origin = e.request.header.get('Origin') || e.requestInfo().headers['origin']
   if (origin) {
-    const allowed = embedKey.get('allowed_origins') || []
+    const allowed = specificEmbedKey.get('allowed_origins') || []
     if (allowed.length > 0 && !allowed.includes(origin)) {
       return e.forbiddenError('Origin not allowed')
     }
   }
+
+  const embedKey = specificEmbedKey
 
   const requesterEmail = String(body.email || '')
     .trim()
