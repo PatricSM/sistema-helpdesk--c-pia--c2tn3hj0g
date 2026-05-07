@@ -70,11 +70,11 @@ export function UserMenu({ compact = false }: { compact?: boolean }) {
             Portal do cliente
           </DropdownMenuItem>
         )}
-        <DropdownMenuItem onClick={() => navigate('/docs')} className="cursor-pointer">
+        <DropdownMenuItem onClick={() => navigate('/help')} className="cursor-pointer">
           <LifeBuoy className="mr-2 h-4 w-4" />
           Suporte
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => navigate('/docs')} className="cursor-pointer">
+        <DropdownMenuItem onClick={() => navigate('/help')} className="cursor-pointer">
           <BookOpen className="mr-2 h-4 w-4" />
           Documentação
         </DropdownMenuItem>

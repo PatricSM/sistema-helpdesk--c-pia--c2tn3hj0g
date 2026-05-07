@@ -25,8 +25,11 @@ import Agents from './pages/Agents'
 import Notifications from './pages/Notifications'
 import Search from './pages/Search'
 import Settings from './pages/Settings'
-import DocsLayout from './pages/DocsLayout'
-import DocsTopicResolver from './pages/DocsTopicResolver'
+import { PublicDocsLayout } from './pages/PublicDocsLayout'
+import { PublicDocsHome } from './pages/PublicDocsHome'
+import { PublicDocsArticle } from './pages/PublicDocsArticle'
+import { HelpCenterLayout } from './pages/HelpCenterLayout'
+import { HelpTopicResolver } from './pages/HelpTopicResolver'
 import NotFound from './pages/NotFound'
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -45,10 +48,24 @@ const App = () => (
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/docs" element={<DocsLayout />}>
-            <Route index element={<Navigate to="/docs/intro" replace />} />
-            <Route path=":topic" element={<DocsTopicResolver />} />
+
+          <Route path="/docs" element={<PublicDocsLayout />}>
+            <Route index element={<PublicDocsHome />} />
+            <Route path=":articleId" element={<PublicDocsArticle />} />
           </Route>
+
+          <Route
+            path="/help"
+            element={
+              <ProtectedRoute>
+                <HelpCenterLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="/help/intro" replace />} />
+            <Route path=":topic" element={<HelpTopicResolver />} />
+          </Route>
+
           <Route
             element={
               <ProtectedRoute>

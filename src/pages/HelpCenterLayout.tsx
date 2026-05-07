@@ -13,8 +13,8 @@ const TOPICS = [
   { key: 'notifications', label: 'Notificações', icon: Bell, group: 'Operação' },
 ]
 
-export default function DocsLayout() {
-  const { user, loading } = useAuth()
+export function HelpCenterLayout() {
+  const { loading } = useAuth()
 
   const grouped = TOPICS.reduce<Record<string, typeof TOPICS>>((acc, t) => {
     acc[t.group] = acc[t.group] || []
@@ -27,18 +27,13 @@ export default function DocsLayout() {
       <header className="h-14 border-b border-border bg-card flex items-center justify-between px-6 shrink-0">
         <div className="flex items-center gap-2 font-semibold">
           <LifeBuoy className="w-5 h-5 text-primary" />
-          <span>Documentação</span>
+          <span>Centro de Ajuda Interno</span>
         </div>
-        {!loading &&
-          (user ? (
-            <Button asChild variant="outline" size="sm">
-              <Link to="/">Voltar ao app</Link>
-            </Button>
-          ) : (
-            <Button asChild size="sm">
-              <Link to="/login">Entrar</Link>
-            </Button>
-          ))}
+        {!loading && (
+          <Button asChild variant="outline" size="sm">
+            <Link to="/">Voltar ao app</Link>
+          </Button>
+        )}
       </header>
 
       <div className="flex-1 flex overflow-hidden h-[calc(100vh-3.5rem)]">
@@ -52,7 +47,7 @@ export default function DocsLayout() {
                 {items.map((t) => (
                   <NavLink
                     key={t.key}
-                    to={`/docs/${t.key}`}
+                    to={`/help/${t.key}`}
                     className={({ isActive }) =>
                       cn(
                         'flex h-9 w-full items-center gap-2.5 rounded-md px-2.5 text-sm transition-colors',

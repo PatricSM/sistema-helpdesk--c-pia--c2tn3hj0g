@@ -146,7 +146,7 @@ export function Sidebar() {
 
       <div className="flex flex-col gap-2 pb-2.5">
         {!isClient && (
-          <SidebarLink icon={HelpCircle} label="Ajuda" to="/docs" isExpanded={isExpanded} />
+          <SidebarLink icon={HelpCircle} label="Ajuda" to="/help" isExpanded={isExpanded} />
         )}
         <SidebarLink
           icon={isExpanded ? ArrowLeftFromLine : ArrowRightFromLine}

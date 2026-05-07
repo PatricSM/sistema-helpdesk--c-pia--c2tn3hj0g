@@ -15,11 +15,11 @@ const components: Record<string, React.ComponentType> = {
   notifications: HelpNotifications,
 }
 
-export default function DocsTopicResolver() {
+export function HelpTopicResolver() {
   const { topic } = useParams<{ topic: string }>()
 
   if (!topic || !components[topic]) {
-    return <Navigate to="/docs/intro" replace />
+    return <Navigate to="/help/intro" replace />
   }
 
   const Component = components[topic]
