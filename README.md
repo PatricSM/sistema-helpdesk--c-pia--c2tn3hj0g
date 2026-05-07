@@ -29,6 +29,14 @@ npm install
 
 O projeto utiliza variáveis de ambiente para configuração de serviços externos. Consulte o arquivo `.env.example` como referência de configuração.
 
+### Configuração da URL do app (necessária para o modal /docs)
+
+Para que a validação de origem (CORS/Same-Origin) funcione automaticamente no modal interno de suporte (`/docs`), o backend precisa saber qual é a URL oficial do seu frontend. Configure isso de uma das duas formas abaixo:
+- **No Painel Admin do PocketBase**: Vá em *Settings* → *Application URL* e defina a URL do seu frontend (ex: `https://meusite.com`).
+- **Via Variável de Ambiente**: Defina a variável `EMBED_BASE_URL` ou `VITE_EMBED_BASE_URL` no ambiente do backend.
+
+Isso garante que formulários carregados na própria aplicação funcionem sem precisar adicionar a URL manualmente na lista de origens permitidas.
+
 ### Configuração do Resend
 
 Para o funcionamento correto dos e-mails transacionais e recebimento de tickets por e-mail, é necessário configurar o Resend com os seguintes passos:
