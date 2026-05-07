@@ -99,6 +99,7 @@ onRecordAfterCreateSuccess((e) => {
             text,
             replyTo: emailHelpers.replyToFor(ticket.id),
             ticketId: ticket.id,
+            commentId: comment.id,
           })
         }
       }

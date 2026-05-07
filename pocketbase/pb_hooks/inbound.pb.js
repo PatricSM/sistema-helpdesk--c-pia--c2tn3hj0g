@@ -109,6 +109,7 @@ routerAdd('POST', '/backend/v1/inbound/email', (e) => {
         if (data.text) log.set('body_text', String(data.text))
         if (data.html) log.set('body_html', String(data.html))
         if (data.ticketId) log.set('ticket', data.ticketId)
+        if (data.commentId) log.set('comment', data.commentId)
         log.set('status', data.status || 'delivered')
         if (data.error) log.set('error', String(data.error))
         $app.save(log)
@@ -316,7 +317,7 @@ routerAdd('POST', '/backend/v1/inbound/email', (e) => {
       }
     }
 
-    createEmailLog({ ...body, ticketId, status: 'delivered' })
+    createEmailLog({ ...body, ticketId, commentId: comment.id, status: 'delivered' })
 
     return e.json(200, { success: true, commentId: comment.id })
   } catch (err) {

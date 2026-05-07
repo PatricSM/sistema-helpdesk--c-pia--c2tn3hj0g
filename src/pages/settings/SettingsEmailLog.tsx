@@ -124,6 +124,7 @@ export function SettingsEmailLog() {
               <TableHead>Para</TableHead>
               <TableHead>Assunto</TableHead>
               <TableHead>Ticket</TableHead>
+              <TableHead>Comentário</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Data</TableHead>
             </TableRow>
@@ -155,6 +156,18 @@ export function SettingsEmailLog() {
                   {log.ticket ? (
                     <Link to={`/tickets/${log.ticket}`} className="text-blue-500 hover:underline">
                       #{log.expand?.ticket?.id?.slice(0, 8) || log.ticket.slice(0, 8)}
+                    </Link>
+                  ) : (
+                    '-'
+                  )}
+                </TableCell>
+                <TableCell>
+                  {log.comment ? (
+                    <Link
+                      to={log.ticket ? `/tickets/${log.ticket}` : '#'}
+                      className="text-blue-500 hover:underline"
+                    >
+                      {log.comment.slice(0, 8)}
                     </Link>
                   ) : (
                     '-'

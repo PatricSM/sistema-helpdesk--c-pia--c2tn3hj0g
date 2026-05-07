@@ -14,7 +14,7 @@ export const getEmailLogsList = (page: number, filters: EmailLogFilters) => {
   return pb.collection('email_log').getList(page, 50, {
     sort: '-created',
     filter: parts.join(' && '),
-    expand: 'ticket',
+    expand: 'ticket,comment',
   })
 }
 

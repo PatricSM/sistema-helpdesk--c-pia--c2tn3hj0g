@@ -36,6 +36,7 @@ module.exports = {
         logRecord.set('status', 'skipped')
         logRecord.set('error', `Skipped due to ${userStatus} status`)
         if (options.ticketId) logRecord.set('ticket', options.ticketId)
+        if (options.commentId) logRecord.set('comment', options.commentId)
         app.save(logRecord)
       } catch (e) {
         console.error('Failed to log skipped email:', e)
@@ -105,6 +106,7 @@ module.exports = {
       if (resendId) logRecord.set('resend_id', resendId)
       if (errorMsg) logRecord.set('error', errorMsg)
       if (options.ticketId) logRecord.set('ticket', options.ticketId)
+      if (options.commentId) logRecord.set('comment', options.commentId)
 
       app.save(logRecord)
     } catch (logErr) {
