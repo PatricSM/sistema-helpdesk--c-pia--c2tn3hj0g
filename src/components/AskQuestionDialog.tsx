@@ -59,9 +59,7 @@ export function AskQuestionDialog({ open, onOpenChange }: AskQuestionDialogProps
 
     const embedKey = import.meta.env.VITE_DOCS_EMBED_KEY
     if (!embedKey) {
-      setErrorMessage(
-        'A chave de embed da documentação (VITE_DOCS_EMBED_KEY) não está configurada.',
-      )
+      setErrorMessage('Suporte indisponível no momento.')
       setStatus('error')
       return
     }
