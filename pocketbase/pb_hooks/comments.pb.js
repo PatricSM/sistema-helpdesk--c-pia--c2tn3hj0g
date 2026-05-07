@@ -7,6 +7,13 @@
  *   demais agentes (se interno).
  */
 
+onRecordCreate((e) => {
+  if (!e.record.get('source')) {
+    e.record.set('source', 'app')
+  }
+  e.next()
+}, 'comments')
+
 onRecordAfterCreateSuccess((e) => {
   const helpers = require(`${__hooks}/_helpers.js`)
   const comment = e.record
@@ -79,7 +86,7 @@ onRecordAfterCreateSuccess((e) => {
 
     // Notificação por Email para o requester (se a resposta for de um agente/admin)
     try {
-      if (isStaff && requester && requester !== authorId) {
+      if (isStaff && requester && requester !== authorId && comment.get('source') !== 'email') {
         const requesterRecord = $app.findRecordById('_pb_users_auth_', requester)
         if (requesterRecord && requesterRecord.get('email')) {
           const emailHelpers = require(`${__hooks}/_email.js`)

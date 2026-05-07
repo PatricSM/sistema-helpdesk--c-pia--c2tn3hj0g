@@ -6,6 +6,7 @@ export interface CommentRecord {
   author: string
   body: string
   is_internal?: boolean
+  source?: 'app' | 'email' | 'api'
   attachments?: string[]
   message_id?: string
   in_reply_to?: string
@@ -35,6 +36,7 @@ export const createComment = (input: CreateCommentInput) => {
   fd.append('author', input.author)
   fd.append('body', input.body)
   if (input.is_internal) fd.append('is_internal', 'true')
+  fd.append('source', 'app')
   if (input.files) {
     const arr = Array.from(input.files as ArrayLike<File>)
     for (const f of arr) fd.append('attachments', f)

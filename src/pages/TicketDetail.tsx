@@ -754,6 +754,22 @@ function CommentBubble({
               <Lock className="h-3 w-3" /> Nota interna
             </span>
           )}
+          {comment?.source === 'email' && (
+            <span
+              className="inline-flex items-center gap-1 text-xs text-gray-500"
+              title="Recebido por email"
+            >
+              <Mail className="h-3 w-3" />
+            </span>
+          )}
+          {comment?.source === 'api' && (
+            <span
+              className="inline-flex items-center gap-1 text-xs text-gray-500"
+              title="Recebido via API"
+            >
+              <Activity className="h-3 w-3" />
+            </span>
+          )}
         </div>
         <div
           className={cn(

@@ -242,6 +242,7 @@ routerAdd('POST', '/backend/v1/inbound/email', (e) => {
     comment.set('author', user.id)
     comment.set('body', cleanBody || '[No text content]')
     comment.set('is_internal', false)
+    comment.set('source', 'email')
     if (messageId) {
       const cleanMsgId = messageId.replace(/^<|>$/g, '')
       comment.set('message_id', cleanMsgId)
