@@ -173,6 +173,7 @@ routerAdd('POST', '/backend/v1/embed/tickets', (e) => {
   if (!body.description) return e.badRequestError('Description is required')
 
   let user
+  let userIsNew = false
   try {
     user = $app.findAuthRecordByEmail('users', requesterEmail)
   } catch (_) {
@@ -183,6 +184,7 @@ routerAdd('POST', '/backend/v1/embed/tickets', (e) => {
     user.set('name', requesterName)
     user.set('role', 'client')
     $app.save(user)
+    userIsNew = true
   }
 
   const ticketsCol = $app.findCollectionByNameOrId('tickets')
@@ -210,6 +212,32 @@ routerAdd('POST', '/backend/v1/embed/tickets', (e) => {
   ticket.set('embed_key', embedKey.id)
 
   $app.save(ticket)
+
+  if (userIsNew) {
+    try {
+      $app.requestPasswordReset('users', requesterEmail)
+    } catch (err) {
+      console.error('Failed to request password reset:', err)
+    }
+
+    try {
+      const baseUrl =
+        $os.getenv('EMBED_BASE_URL') || $os.getenv('VITE_EMBED_BASE_URL') || 'http://localhost:5173'
+      const resetUrl = `${baseUrl}/login?email=${encodeURIComponent(requesterEmail)}`
+
+      const emailHelper = require(__dirname + '/_email.js')
+      const { html, text } = emailHelper.renderWelcome(user, resetUrl)
+
+      emailHelper.sendEmail($app, {
+        to: requesterEmail,
+        subject: 'Bem-vindo ao Suporte',
+        html: html,
+        text: text,
+      })
+    } catch (err) {
+      console.error('Failed to send welcome email:', err)
+    }
+  }
 
   return e.json(200, { success: true, ticketId: ticket.id })
 })

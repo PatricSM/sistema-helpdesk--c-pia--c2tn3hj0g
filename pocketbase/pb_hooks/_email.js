@@ -157,6 +157,26 @@ module.exports = {
     return { html, text }
   },
 
+  renderWelcome(user, resetUrl) {
+    const name = user.get('name') || ''
+
+    const html = `
+      <h2>Bem-vindo ao nosso portal de suporte!</h2>
+      <p>Olá${name ? ' ' + name : ''},</p>
+      <p>Recebemos sua solicitação de suporte. Uma conta foi criada para você acompanhar seus chamados.</p>
+      <p>Para acessar o portal, por favor defina sua senha clicando no botão abaixo:</p>
+      <p>
+        <a href="${resetUrl}" style="display: inline-block; padding: 10px 20px; background-color: #000; color: #fff; text-decoration: none; border-radius: 5px;">Definir senha</a>
+      </p>
+      <p>Ou copie e cole o link no seu navegador:<br/><a href="${resetUrl}">${resetUrl}</a></p>
+    `
+    const text = `Bem-vindo ao nosso portal de suporte!\n\nOlá${
+      name ? ' ' + name : ''
+    },\n\nRecebemos sua solicitação de suporte. Uma conta foi criada para você acompanhar seus chamados.\n\nPara acessar o portal, por favor defina sua senha acessando o link abaixo:\n${resetUrl}`
+
+    return { html, text }
+  },
+
   renderTicketReply(ticket, comment, author) {
     const title = ticket.get('title') || 'Sem título'
     const body = comment.get('body') || ''
