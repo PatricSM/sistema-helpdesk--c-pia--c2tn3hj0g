@@ -40,14 +40,22 @@ routerAdd('POST', '/backend/v1/inbound/email', (e) => {
     }
 
     let autoSubmitted = 'no'
+    let inReplyTo = ''
+    let messageId = ''
+
     if (body.headers && Array.isArray(body.headers)) {
-      const asHeader = body.headers.find(
-        (h) => h.name && String(h.name).toLowerCase() === 'auto-submitted',
-      )
-      if (asHeader) autoSubmitted = String(asHeader.value).toLowerCase()
+      for (const h of body.headers) {
+        const name = String(h.name).toLowerCase()
+        if (name === 'auto-submitted') autoSubmitted = String(h.value).toLowerCase()
+        if (name === 'in-reply-to') inReplyTo = String(h.value)
+        if (name === 'message-id') messageId = String(h.value)
+      }
     } else if (body.headers && typeof body.headers === 'object') {
-      const val = body.headers['Auto-Submitted'] || body.headers['auto-submitted']
-      if (val) autoSubmitted = String(val).toLowerCase()
+      autoSubmitted = String(
+        body.headers['Auto-Submitted'] || body.headers['auto-submitted'] || 'no',
+      ).toLowerCase()
+      inReplyTo = String(body.headers['In-Reply-To'] || body.headers['in-reply-to'] || '')
+      messageId = String(body.headers['Message-ID'] || body.headers['message-id'] || '')
     }
 
     const fromAddress = String(body.from || '').toLowerCase()
@@ -147,6 +155,22 @@ routerAdd('POST', '/backend/v1/inbound/email', (e) => {
     comment.set('author', user.id)
     comment.set('body', cleanBody || '[No text content]')
     comment.set('is_internal', false)
+    if (messageId) {
+      const cleanMsgId = messageId.replace(/^<|>$/g, '')
+      comment.set('message_id', cleanMsgId)
+    }
+    if (inReplyTo) {
+      const cleanRef = inReplyTo.replace(/^<|>$/g, '')
+      try {
+        $app.findFirstRecordByData('comments', 'message_id', cleanRef)
+        comment.set('in_reply_to', cleanRef)
+      } catch (_) {
+        try {
+          $app.findFirstRecordByData('comments', 'message_id', inReplyTo)
+          comment.set('in_reply_to', inReplyTo)
+        } catch (_) {}
+      }
+    }
 
     if (body.attachments && Array.isArray(body.attachments)) {
       const files = []

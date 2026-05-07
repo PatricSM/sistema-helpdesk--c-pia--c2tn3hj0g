@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-07T17:57:55.095Z",
+  "generatedAt": "2026-05-07T18:06:21.212Z",
   "collections": [
     {
       "name": "users",
@@ -44,6 +44,19 @@
           "required": false,
           "system": false,
           "selectValues": ["admin", "agent", "client"]
+        },
+        {
+          "name": "email_status",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["ok", "bounced", "complained"]
+        },
+        {
+          "name": "last_bounce_at",
+          "type": "date",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": [
@@ -297,6 +310,18 @@
         {
           "name": "attachments",
           "type": "file",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "message_id",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "in_reply_to",
+          "type": "text",
           "required": false,
           "system": false
         }
@@ -1230,6 +1255,52 @@
         }
       ],
       "indexes": ["CREATE INDEX idx_email_log_ticket ON email_log (ticket)"]
+    },
+    {
+      "name": "rate_limit_buckets",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.role = 'admin'",
+        "view": "@request.auth.role = 'admin'",
+        "create": "@request.auth.role = 'admin'",
+        "update": "@request.auth.role = 'admin'",
+        "delete": "@request.auth.role = 'admin'"
+      },
+      "fields": [
+        {
+          "name": "key",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "count",
+          "type": "number",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "window_start",
+          "type": "date",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": ["CREATE UNIQUE INDEX idx_rate_limit_buckets_key ON rate_limit_buckets (key)"]
     }
   ]
 }

@@ -12,9 +12,41 @@ module.exports = {
       return
     }
 
+    let userStatus = 'ok'
+    try {
+      let pureEmail = String(options.to).toLowerCase()
+      const match = pureEmail.match(/<([^>]+)>/)
+      if (match && match[1]) pureEmail = match[1].trim()
+
+      const user = app.findAuthRecordByEmail('users', pureEmail)
+      userStatus = user.get('email_status') || 'ok'
+    } catch (_) {
+      // User not found, proceed
+    }
+
+    if (userStatus === 'bounced' || userStatus === 'complained') {
+      console.warn(`User ${options.to} has status ${userStatus}. Skipping email send.`)
+      try {
+        const logCol = app.findCollectionByNameOrId('email_log')
+        const logRecord = new Record(logCol)
+        logRecord.set('direction', 'out')
+        logRecord.set('to', options.to)
+        logRecord.set('from', fromEmail)
+        logRecord.set('subject', options.subject || '')
+        logRecord.set('status', 'skipped')
+        logRecord.set('error', `Skipped due to ${userStatus} status`)
+        if (options.ticketId) logRecord.set('ticket', options.ticketId)
+        app.save(logRecord)
+      } catch (e) {
+        console.error('Failed to log skipped email:', e)
+      }
+      return
+    }
+
     let status = 'failed'
     let resendId = ''
     let errorMsg = ''
+    let msgId = ''
 
     try {
       const res = $http.send({
@@ -38,6 +70,17 @@ module.exports = {
       if (res.statusCode >= 200 && res.statusCode < 300) {
         status = 'queued'
         resendId = res.json?.id || ''
+        msgId = res.json?.message_id || resendId
+
+        if (options.commentId) {
+          try {
+            const comment = app.findRecordById('comments', options.commentId)
+            comment.set('message_id', msgId)
+            app.save(comment)
+          } catch (err) {
+            console.error('Failed to update comment with message_id:', err)
+          }
+        }
       } else {
         status = 'failed'
         errorMsg = res.json?.message || `HTTP ${res.statusCode}`

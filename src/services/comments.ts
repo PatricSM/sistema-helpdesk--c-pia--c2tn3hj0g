@@ -7,6 +7,8 @@ export interface CommentRecord {
   body: string
   is_internal?: boolean
   attachments?: string[]
+  message_id?: string
+  in_reply_to?: string
   created: string
   updated: string
   expand?: { author?: { id: string; name: string; role?: string } }
