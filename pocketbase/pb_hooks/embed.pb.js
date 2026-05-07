@@ -1,20 +1,30 @@
 routerAdd('OPTIONS', '/backend/v1/embed/tickets', (e) => {
+  const isSameOrigin = (req, reqInfo) => {
+    const reqOrigin = req.header.get('Origin') || reqInfo.headers['origin']
+    if (!reqOrigin) return false
+    const originHost = reqOrigin.replace(/^https?:\/\//, '')
+    return originHost === req.host
+  }
+
   const origin = e.request.header.get('Origin') || e.requestInfo().headers['origin']
   if (!origin) {
     return e.forbiddenError('Origin required')
   }
 
-  let isAuthorized = false
-  try {
-    const keys = $app.findRecordsByFilter('embed_keys', 'is_active = true', '', 1000, 0)
-    for (const key of keys) {
-      const allowed = key.get('allowed_origins') || []
-      if (allowed.length === 0 || allowed.includes(origin)) {
-        isAuthorized = true
-        break
+  let isAuthorized = isSameOrigin(e.request, e.requestInfo())
+
+  if (!isAuthorized) {
+    try {
+      const keys = $app.findRecordsByFilter('embed_keys', 'is_active = true', '', 1000, 0)
+      for (const key of keys) {
+        const allowed = key.get('allowed_origins') || []
+        if (allowed.length === 0 || allowed.includes(origin)) {
+          isAuthorized = true
+          break
+        }
       }
-    }
-  } catch (_) {}
+    } catch (_) {}
+  }
 
   if (!isAuthorized) {
     return e.forbiddenError('Origin not allowed')
@@ -32,17 +42,24 @@ routerAdd('OPTIONS', '/backend/v1/embed/tickets', (e) => {
 })
 
 routerAdd('POST', '/backend/v1/embed/tickets', (e) => {
+  const isSameOrigin = (req, reqInfo) => {
+    const reqOrigin = req.header.get('Origin') || reqInfo.headers['origin']
+    if (!reqOrigin) return false
+    const originHost = reqOrigin.replace(/^https?:\/\//, '')
+    return originHost === req.host
+  }
+
   const body = e.requestInfo().body || {}
   const origin = e.request.header.get('Origin') || e.requestInfo().headers['origin']
 
-  let originAllowed = false
+  let originAllowed = isSameOrigin(e.request, e.requestInfo())
   const embedKeyStr = body.embed_key
   let specificEmbedKey = null
 
   if (embedKeyStr) {
     try {
       specificEmbedKey = $app.findFirstRecordByData('embed_keys', 'key', embedKeyStr)
-      if (specificEmbedKey.get('is_active')) {
+      if (specificEmbedKey.get('is_active') && !originAllowed) {
         const allowed = specificEmbedKey.get('allowed_origins') || []
         if (allowed.length === 0 || (origin && allowed.includes(origin))) {
           originAllowed = true
@@ -148,7 +165,7 @@ routerAdd('POST', '/backend/v1/embed/tickets', (e) => {
     return e.badRequestError('Embed key is inactive')
   }
 
-  if (origin) {
+  if (origin && !isSameOrigin(e.request, e.requestInfo())) {
     const allowed = specificEmbedKey.get('allowed_origins') || []
     if (allowed.length > 0 && !allowed.includes(origin)) {
       return e.forbiddenError('Origin not allowed')

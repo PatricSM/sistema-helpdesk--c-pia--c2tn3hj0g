@@ -260,7 +260,9 @@ export function SettingsEmbedKeys() {
                 rows={3}
               />
               <p className="text-xs text-muted-foreground">
-                Uma URL por linha. Use * para permitir qualquer origem.
+                Uma URL por linha (ex.: https://meusite.com). Deixe vazio se a key será usada apenas
+                no próprio app (página /docs). O domínio do próprio app é sempre permitido
+                automaticamente.
               </p>
             </div>
             <div className="space-y-2">

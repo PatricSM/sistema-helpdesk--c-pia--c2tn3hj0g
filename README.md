@@ -41,6 +41,7 @@ Para o funcionamento correto dos e-mails transacionais e recebimento de tickets 
 Para o funcionamento do formulário de abertura de chamados via Embed ou na Base de Conhecimento Pública, é necessário configurar a chave de embed:
 - **Gerar Embed Key**: Acesse o painel de configurações do sistema (Settings -> Embed Forms), crie um novo Embed Form e copie a chave gerada.
 - **Configurar Variável de Ambiente**: Defina a chave copiada na variável `VITE_DOCS_EMBED_KEY` no arquivo `.env`.
+- **Origens Permitidas**: Same-origin (modal /docs do próprio app) é sempre permitido, independente do allowed_origins da embed_key. Use allowed_origins apenas para liberar sites EXTERNOS que vão hospedar o iframe.
 
 ### Proteção Anti-Spam (Embed Form)
 
