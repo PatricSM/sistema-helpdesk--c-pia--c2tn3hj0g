@@ -65,7 +65,7 @@ export default function EmbedForm() {
     setErrorMessage('')
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_POCKETBASE_URL}/backend/v1/embed/ticket`, {
+      const res = await fetch(`${import.meta.env.VITE_POCKETBASE_URL}/backend/v1/embed/tickets`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
