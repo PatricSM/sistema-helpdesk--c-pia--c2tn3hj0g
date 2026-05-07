@@ -56,7 +56,7 @@ onRecordAfterCreateSuccess((e) => {
   const assignee = ticket.get('assignee')
 
   if (!isInternal) {
-    // Comentário público: notificar requester (se não foi o próprio que escreveu)
+    // Comentário público: notificar requester (se não foi o próprio que escreveu) via in-app
     if (requester && requester !== authorId) {
       helpers.createNotification($app, {
         recipient: requester,
@@ -75,6 +75,28 @@ onRecordAfterCreateSuccess((e) => {
         body: `${authorName}: ${(comment.get('body') || '').slice(0, 200)}`,
         ticket: ticketId,
       })
+    }
+
+    // Notificação por Email para o requester (se a resposta for de um agente/admin)
+    try {
+      if (isStaff && requester && requester !== authorId) {
+        const requesterRecord = $app.findRecordById('_pb_users_auth_', requester)
+        if (requesterRecord && requesterRecord.get('email')) {
+          const emailHelpers = require(`${__hooks}/_email.js`)
+          const authorRecord = $app.findRecordById('_pb_users_auth_', authorId)
+          const { html, text } = emailHelpers.renderTicketReply(ticket, comment, authorRecord)
+          emailHelpers.sendEmail($app, {
+            to: requesterRecord.get('email'),
+            subject: `Re: [${ticket.id}] ${ticket.get('title')}`,
+            html,
+            text,
+            replyTo: emailHelpers.replyToFor(ticket.id),
+            ticketId: ticket.id,
+          })
+        }
+      }
+    } catch (err) {
+      console.error('[comment email notification error]', err)
     }
   } else {
     // Comentário interno: notificar somente o assignee (não o cliente)

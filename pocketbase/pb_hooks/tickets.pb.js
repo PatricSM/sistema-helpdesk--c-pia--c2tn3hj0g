@@ -66,7 +66,7 @@ onRecordAfterCreateSuccess((e) => {
     }
   }
 
-  // Notificar assignee
+  // Notificar assignee via in-app
   const assignee = ticket.get('assignee')
   if (assignee && assignee !== ticket.get('requester')) {
     helpers.createNotification($app, {
@@ -76,6 +76,44 @@ onRecordAfterCreateSuccess((e) => {
       body: ticket.get('description')?.slice(0, 200),
       ticket: ticket.id,
     })
+  }
+
+  // Notificações por Email
+  try {
+    const emailHelpers = require(`${__hooks}/_email.js`)
+    const requesterId = ticket.get('requester')
+
+    if (requesterId) {
+      const requester = $app.findRecordById('_pb_users_auth_', requesterId)
+      if (requester && requester.get('email')) {
+        const { html, text } = emailHelpers.renderTicketCreated(ticket, requester)
+        emailHelpers.sendEmail($app, {
+          to: requester.get('email'),
+          subject: `Chamado Criado: [${ticket.id}] ${ticket.get('title')}`,
+          html,
+          text,
+          replyTo: emailHelpers.replyToFor(ticket.id),
+          ticketId: ticket.id,
+        })
+      }
+    }
+
+    if (assignee && assignee !== requesterId) {
+      const assigneeRecord = $app.findRecordById('_pb_users_auth_', assignee)
+      if (assigneeRecord && assigneeRecord.get('email')) {
+        const { html, text } = emailHelpers.renderTicketAssigned(ticket, assigneeRecord)
+        emailHelpers.sendEmail($app, {
+          to: assigneeRecord.get('email'),
+          subject: `Novo Chamado Atribuído: [${ticket.id}] ${ticket.get('title')}`,
+          html,
+          text,
+          replyTo: emailHelpers.replyToFor(ticket.id),
+          ticketId: ticket.id,
+        })
+      }
+    }
+  } catch (err) {
+    console.error('[ticket email notification error]', err)
   }
 
   e.next()
