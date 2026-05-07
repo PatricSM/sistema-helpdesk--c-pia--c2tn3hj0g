@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-07T17:12:44.965Z",
+  "generatedAt": "2026-05-07T17:28:03.040Z",
   "collections": [
     {
       "name": "users",
@@ -225,6 +225,20 @@
           "type": "bool",
           "required": false,
           "system": false
+        },
+        {
+          "name": "source",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["web", "embed", "email", "api"]
+        },
+        {
+          "name": "embed_key",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "embed_keys"
         }
       ],
       "indexes": []
@@ -1052,6 +1066,170 @@
         "CREATE INDEX idx_list_views_owner_collection ON list_views (owner, collection_name)",
         "CREATE INDEX idx_list_views_public ON list_views (is_public)"
       ]
+    },
+    {
+      "name": "embed_keys",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.role = 'admin' || @request.auth.role = 'agent'",
+        "view": "@request.auth.role = 'admin' || @request.auth.role = 'agent'",
+        "create": "@request.auth.role = 'admin'",
+        "update": "@request.auth.role = 'admin'",
+        "delete": "@request.auth.role = 'admin'"
+      },
+      "fields": [
+        {
+          "name": "key",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "allowed_origins",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "default_category",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "categories"
+        },
+        {
+          "name": "default_team",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "teams"
+        },
+        {
+          "name": "is_active",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created_by",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": ["CREATE UNIQUE INDEX idx_embed_keys_key ON embed_keys (key)"]
+    },
+    {
+      "name": "email_log",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.role = 'admin'",
+        "view": "@request.auth.role = 'admin'",
+        "create": null,
+        "update": null,
+        "delete": "@request.auth.role = 'admin'"
+      },
+      "fields": [
+        {
+          "name": "direction",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["in", "out"]
+        },
+        {
+          "name": "to",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "from",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "subject",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "body_text",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "body_html",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "ticket",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "tickets"
+        },
+        {
+          "name": "resend_id",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["queued", "sent", "delivered", "bounced", "failed"]
+        },
+        {
+          "name": "error",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": ["CREATE INDEX idx_email_log_ticket ON email_log (ticket)"]
     }
   ]
 }
