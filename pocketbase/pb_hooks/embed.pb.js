@@ -1,4 +1,4 @@
-routerAdd('OPTIONS', '/backend/v1/embed/tickets', (e) => {
+routerAdd('OPTIONS', '/api/embed/tickets', (e) => {
   const origin = e.request.header.get('Origin') || e.requestInfo().headers['origin'] || '*'
 
   try {
@@ -12,7 +12,7 @@ routerAdd('OPTIONS', '/backend/v1/embed/tickets', (e) => {
   return e.noContent(204)
 })
 
-routerAdd('POST', '/backend/v1/embed/tickets', (e) => {
+routerAdd('POST', '/api/embed/tickets', (e) => {
   const origin = e.request.header.get('Origin') || e.requestInfo().headers['origin'] || '*'
 
   try {

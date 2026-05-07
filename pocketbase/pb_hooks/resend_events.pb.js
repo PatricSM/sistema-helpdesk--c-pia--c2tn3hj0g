@@ -1,4 +1,4 @@
-routerAdd('POST', '/backend/v1/webhook/resend', (e) => {
+routerAdd('POST', '/api/webhook/resend', (e) => {
   const secret = $os.getenv('RESEND_WEBHOOK_SECRET') || $secrets.get('RESEND_WEBHOOK_SECRET')
   if (!secret) {
     return e.unauthorizedError('Webhook secret not configured.')

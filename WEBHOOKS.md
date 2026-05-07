@@ -51,7 +51,7 @@ console.log(`svix-signature: v1,${signature}`)
 Since our implementation captures the exact raw body to avoid JSON formatting issues, you can simulate a request manually:
 
 ```bash
-curl -X POST https://your-pocketbase-instance.com/backend/v1/webhook/resend \
+curl -X POST https://your-pocketbase-instance.com/api/webhook/resend \
   -H "Content-Type: application/json" \
   -H "svix-id: evt_test_123" \
   -H "svix-timestamp: 1690000000" \

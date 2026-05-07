@@ -35,7 +35,7 @@ export default function EmbedForm() {
     setErrorMessage('')
 
     try {
-      const res = await fetch(`/backend/v1/embed/tickets`, {
+      const res = await fetch(`/api/embed/tickets`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

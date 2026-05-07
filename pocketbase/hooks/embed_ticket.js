@@ -1,4 +1,4 @@
-routerAdd('POST', '/backend/v1/embed/tickets', (e) => {
+routerAdd('POST', '/api/embed/tickets', (e) => {
   const body = e.requestInfo().body || {}
   const { embed_key, captcha_token, email, name, subject, description } = body
 

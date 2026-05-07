@@ -1,4 +1,4 @@
-routerAdd('POST', '/backend/v1/inbound/email', (e) => {
+routerAdd('POST', '/api/inbound/email', (e) => {
   try {
     const secret = $os.getenv('RESEND_WEBHOOK_SECRET') || $secrets.get('RESEND_WEBHOOK_SECRET')
     if (!secret) {

@@ -31,14 +31,19 @@ O projeto utiliza variáveis de ambiente para configuração de serviços extern
 
 ### Modal "Ainda Tenho Dúvida" e iframe embed
 
-O endpoint `/backend/v1/embed/tickets` aceita requisições de qualquer origem (CORS *). A configuração "Application URL" no PocketBase Admin não é mais necessária para este fluxo específico.
+O endpoint `/api/embed/tickets` aceita requisições de qualquer origem (CORS *). A configuração "Application URL" no PocketBase Admin não é mais necessária para este fluxo específico.
 
 ### Configuração do Resend
 
 Para o funcionamento correto dos e-mails transacionais e recebimento de tickets por e-mail, é necessário configurar o Resend com os seguintes passos:
 - **Verificar o domínio**: No painel do Resend, configure os **DKIM/SPF records** em seu provedor de DNS para garantir a entrega.
 - **Registros MX inbound**: Configure os **MX inbound records** em seu DNS para habilitar o recebimento de e-mails para o domínio.
-- **Webhook URL**: Configure a **Webhook URL para incoming emails** no painel do Resend para que as mensagens recebidas sejam enviadas para o seu backend.
+- **Webhook URL**: Configure a **Webhook URL para incoming emails** no painel do Resend para que as mensagens recebidas sejam enviadas para o seu backend: `https://[APP_DOMAIN]/api/inbound/email`
+
+### Configuração de Eventos do Resend
+
+Para rastrear o status de entrega, bounce e falhas de e-mails enviados:
+- **Webhook Events URL**: Configure a **Webhook URL** no painel do Resend para eventos (e.g. `email.delivered`, `email.bounced`, `email.complained`): `https://[APP_DOMAIN]/api/webhook/resend`
 
 ### Configuração do Formulário Público (Embed Form & Docs)
 
