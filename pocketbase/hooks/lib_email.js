@@ -25,21 +25,31 @@ module.exports = {
     }
 
     if (userStatus === 'bounced' || userStatus === 'complained') {
-      console.warn(`User ${options.to} has status ${userStatus}. Skipping email send.`)
+      app
+        .logger()
+        .warn('email_skipped_status', 'to', String(options.to || ''), 'userStatus', userStatus)
       try {
         const logCol = app.findCollectionByNameOrId('email_log')
         const logRecord = new Record(logCol)
         logRecord.set('direction', 'out')
-        logRecord.set('to', options.to)
-        logRecord.set('from', fromEmail)
-        logRecord.set('subject', options.subject || '')
+        logRecord.set('to', String(options.to || ''))
+        logRecord.set('from', String(fromEmail || ''))
+        logRecord.set('subject', String(options.subject || ''))
         logRecord.set('status', 'skipped')
         logRecord.set('error', `Skipped due to ${userStatus} status`)
-        if (options.ticketId) logRecord.set('ticket', options.ticketId)
-        if (options.commentId) logRecord.set('comment', options.commentId)
+        if (options.ticketId) logRecord.set('ticket', String(options.ticketId))
+        if (options.commentId) logRecord.set('comment', String(options.commentId))
         app.save(logRecord)
       } catch (e) {
-        console.error('Failed to log skipped email:', e)
+        app
+          .logger()
+          .error(
+            'email_log_skipped_save_failed',
+            'error',
+            String((e && e.message) || e),
+            'stack',
+            String((e && e.stack) || ''),
+          )
       }
       return
     }
@@ -94,23 +104,37 @@ module.exports = {
     }
 
     try {
+      app.logger().info('email_log_save_attempt', 'to', String(options.to || ''), 'status', status)
       const emailLogCol = app.findCollectionByNameOrId('email_log')
       const logRecord = new Record(emailLogCol)
       logRecord.set('direction', 'out')
-      logRecord.set('to', options.to)
-      logRecord.set('from', fromEmail)
-      logRecord.set('subject', options.subject || '')
-      logRecord.set('body_text', options.text || '')
-      logRecord.set('body_html', options.html || '')
+      logRecord.set('to', String(options.to || ''))
+      logRecord.set('from', String(fromEmail || ''))
+      logRecord.set('subject', String(options.subject || ''))
+      logRecord.set('body_text', String(options.text || ''))
+      logRecord.set('body_html', String(options.html || ''))
       logRecord.set('status', status)
-      if (resendId) logRecord.set('resend_id', resendId)
-      if (errorMsg) logRecord.set('error', errorMsg)
-      if (options.ticketId) logRecord.set('ticket', options.ticketId)
-      if (options.commentId) logRecord.set('comment', options.commentId)
+      if (resendId) logRecord.set('resend_id', String(resendId))
+      if (errorMsg) logRecord.set('error', String(errorMsg))
+      if (options.ticketId) logRecord.set('ticket', String(options.ticketId))
+      if (options.commentId) logRecord.set('comment', String(options.commentId))
 
       app.save(logRecord)
+      app.logger().info('email_log_saved', 'recordId', String(logRecord.id))
     } catch (logErr) {
-      console.error('Failed to log email:', logErr)
+      app
+        .logger()
+        .error(
+          'email_log_save_failed',
+          'error',
+          String((logErr && logErr.message) || logErr),
+          'stack',
+          String((logErr && logErr.stack) || ''),
+          'to',
+          String(options.to || ''),
+          'subject',
+          String(options.subject || ''),
+        )
     }
   },
 
