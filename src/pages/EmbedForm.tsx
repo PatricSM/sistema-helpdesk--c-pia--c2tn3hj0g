@@ -47,7 +47,13 @@ export default function EmbedForm() {
         lgpd: formData.lgpd,
       })
 
-      console.log('embed submission response:', record)
+      console.log('Submission Response:', {
+        id: record.id,
+        ticket: record.ticket,
+        error: record.error,
+        processed: record.processed,
+        client_ip: record.client_ip,
+      })
 
       if (record.ticket) {
         setTicketId(record.ticket)
