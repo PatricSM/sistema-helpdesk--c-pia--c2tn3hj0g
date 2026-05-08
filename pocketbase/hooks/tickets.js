@@ -8,33 +8,23 @@
  * - onRecordAfterUpdateSuccess: notifica assignee/requester sobre mudanças
  */
 
-function loadHelpers() {
-  try {
-    return require('lib_helpers')
-  } catch (_) {}
-  try {
-    return require('./lib_helpers')
-  } catch (_) {}
-  try {
-    return require(__hooks + '/lib_helpers.js')
-  } catch (_) {}
-  return {}
-}
-function loadEmailHelpers() {
-  try {
-    return require('lib_email')
-  } catch (_) {}
-  try {
-    return require('./lib_email')
-  } catch (_) {}
-  try {
-    return require(__hooks + '/lib_email.js')
-  } catch (_) {}
-  return {}
-}
-
 onRecordCreate((e) => {
-  const helpers = loadHelpers()
+  let helpers = {}
+  try {
+    helpers = require('lib_helpers')
+  } catch (_) {}
+  if (!helpers || !helpers.findSlaPolicyForPriority) {
+    try {
+      helpers = require('./lib_helpers')
+    } catch (_) {}
+  }
+  if (!helpers || !helpers.findSlaPolicyForPriority) {
+    try {
+      helpers = require(__hooks + '/lib_helpers.js')
+    } catch (_) {}
+  }
+  if (!helpers) helpers = {}
+
   const ticket = e.record
 
   const priority = ticket.get('priority')
@@ -60,7 +50,22 @@ onRecordCreate((e) => {
 }, 'tickets')
 
 onRecordAfterCreateSuccess((e) => {
-  const helpers = loadHelpers()
+  let helpers = {}
+  try {
+    helpers = require('lib_helpers')
+  } catch (_) {}
+  if (!helpers || !helpers.findMatchingAssignmentRule) {
+    try {
+      helpers = require('./lib_helpers')
+    } catch (_) {}
+  }
+  if (!helpers || !helpers.findMatchingAssignmentRule) {
+    try {
+      helpers = require(__hooks + '/lib_helpers.js')
+    } catch (_) {}
+  }
+  if (!helpers) helpers = {}
+
   const ticket = e.record
 
   // Aplicar regra de assignment (se nenhum assignee já estiver definido)
@@ -105,8 +110,24 @@ onRecordAfterCreateSuccess((e) => {
 
   // Notificações por Email
   try {
-    const emailHelpers = loadEmailHelpers()
-    if (!emailHelpers.sendEmail) return e.next()
+    let emailHelpers = {}
+    try {
+      emailHelpers = require('lib_email')
+    } catch (_) {}
+    if (!emailHelpers || !emailHelpers.sendEmail) {
+      try {
+        emailHelpers = require('./lib_email')
+      } catch (_) {}
+    }
+    if (!emailHelpers || !emailHelpers.sendEmail) {
+      try {
+        emailHelpers = require(__hooks + '/lib_email.js')
+      } catch (_) {}
+    }
+    if (!emailHelpers || !emailHelpers.sendEmail) {
+      e.next()
+      return
+    }
     const requesterId = ticket.get('requester')
 
     if (requesterId) {
@@ -153,7 +174,22 @@ onRecordUpdate((e) => {
 }, 'tickets')
 
 onRecordAfterUpdateSuccess((e) => {
-  const helpers = loadHelpers()
+  let helpers = {}
+  try {
+    helpers = require('lib_helpers')
+  } catch (_) {}
+  if (!helpers || !helpers.createNotification) {
+    try {
+      helpers = require('./lib_helpers')
+    } catch (_) {}
+  }
+  if (!helpers || !helpers.createNotification) {
+    try {
+      helpers = require(__hooks + '/lib_helpers.js')
+    } catch (_) {}
+  }
+  if (!helpers) helpers = {}
+
   const ticket = e.record
   const original = ticket.original()
   if (!original) {
@@ -386,15 +422,29 @@ onRecordCreate((e) => {
           'http://localhost:5173'
         const resetUrl = `${baseUrl}/login?email=${encodeURIComponent(email)}`
 
-        const emailHelper = loadEmailHelpers()
-        const { html, text } = emailHelper.renderWelcome(user, resetUrl)
-
-        emailHelper.sendEmail($app, {
-          to: email,
-          subject: 'Bem-vindo ao Suporte',
-          html: html,
-          text: text,
-        })
+        let emailHelper = {}
+        try {
+          emailHelper = require('lib_email')
+        } catch (_) {}
+        if (!emailHelper || !emailHelper.sendEmail) {
+          try {
+            emailHelper = require('./lib_email')
+          } catch (_) {}
+        }
+        if (!emailHelper || !emailHelper.sendEmail) {
+          try {
+            emailHelper = require(__hooks + '/lib_email.js')
+          } catch (_) {}
+        }
+        if (emailHelper && emailHelper.renderWelcome && emailHelper.sendEmail) {
+          const { html, text } = emailHelper.renderWelcome(user, resetUrl)
+          emailHelper.sendEmail($app, {
+            to: email,
+            subject: 'Bem-vindo ao Suporte',
+            html: html,
+            text: text,
+          })
+        }
       } catch (err) {
         $app.logger().error('Failed to send welcome email', 'error', String(err))
       }
