@@ -9,7 +9,16 @@
  */
 
 cronAdd('autoCloseResolvedTickets', '0 3 * * *', () => {
-  const helpers = require(`${__hooks}/lib_helpers.js`)
+  let helpers = {}
+  try {
+    helpers = require('./lib_helpers.js')
+  } catch (_) {}
+  if (!helpers || !helpers.getSetting) {
+    try {
+      helpers = require(__hooks + '/lib_helpers.js')
+    } catch (_) {}
+  }
+  if (!helpers || !helpers.getSetting) return
 
   const general = helpers.getSetting($app, 'general') || {}
   const days = parseInt(general.auto_close_resolved_after_days || 7, 10)
