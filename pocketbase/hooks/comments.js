@@ -15,7 +15,17 @@ onRecordCreate((e) => {
 }, 'comments')
 
 onRecordAfterCreateSuccess((e) => {
-  const helpers = require(`${__hooks}/lib_helpers.js`)
+  let helpers = {}
+  try {
+    helpers = require('./lib_helpers.js')
+  } catch (_) {}
+  if (!helpers || !helpers.createNotification) {
+    try {
+      helpers = require(__hooks + '/lib_helpers.js')
+    } catch (_) {}
+  }
+  if (!helpers) helpers = {}
+
   const comment = e.record
   const ticketId = comment.get('ticket')
   const authorId = comment.get('author')
@@ -64,7 +74,7 @@ onRecordAfterCreateSuccess((e) => {
 
   if (!isInternal) {
     // Comentário público: notificar requester (se não foi o próprio que escreveu) via in-app
-    if (requester && requester !== authorId) {
+    if (requester && requester !== authorId && helpers.createNotification) {
       helpers.createNotification($app, {
         recipient: requester,
         kind: 'ticket_replied',
@@ -74,7 +84,7 @@ onRecordAfterCreateSuccess((e) => {
       })
     }
     // E notificar assignee se for diferente do autor e do requester
-    if (assignee && assignee !== authorId && assignee !== requester) {
+    if (assignee && assignee !== authorId && assignee !== requester && helpers.createNotification) {
       helpers.createNotification($app, {
         recipient: assignee,
         kind: 'ticket_replied',
@@ -89,18 +99,28 @@ onRecordAfterCreateSuccess((e) => {
       if (isStaff && requester && requester !== authorId && comment.get('source') !== 'email') {
         const requesterRecord = $app.findRecordById('users', requester)
         if (requesterRecord && requesterRecord.get('email')) {
-          const emailHelpers = require(`${__hooks}/lib_email.js`)
-          const authorRecord = $app.findRecordById('users', authorId)
-          const { html, text } = emailHelpers.renderTicketReply(ticket, comment, authorRecord)
-          emailHelpers.sendEmail($app, {
-            to: requesterRecord.get('email'),
-            subject: `Re: [${ticket.id}] ${ticket.get('title')}`,
-            html,
-            text,
-            replyTo: emailHelpers.replyToFor(ticket.id),
-            ticketId: ticket.id,
-            commentId: comment.id,
-          })
+          let emailHelpers = {}
+          try {
+            emailHelpers = require('./lib_email.js')
+          } catch (_) {}
+          if (!emailHelpers || !emailHelpers.sendEmail) {
+            try {
+              emailHelpers = require(__hooks + '/lib_email.js')
+            } catch (_) {}
+          }
+          if (emailHelpers && emailHelpers.sendEmail && emailHelpers.renderTicketReply) {
+            const authorRecord = $app.findRecordById('users', authorId)
+            const { html, text } = emailHelpers.renderTicketReply(ticket, comment, authorRecord)
+            emailHelpers.sendEmail($app, {
+              to: requesterRecord.get('email'),
+              subject: `Re: [${ticket.id}] ${ticket.get('title')}`,
+              html,
+              text,
+              replyTo: emailHelpers.replyToFor(ticket.id),
+              ticketId: ticket.id,
+              commentId: comment.id,
+            })
+          }
         }
       }
     } catch (err) {
@@ -108,7 +128,7 @@ onRecordAfterCreateSuccess((e) => {
     }
   } else {
     // Comentário interno: notificar somente o assignee (não o cliente)
-    if (assignee && assignee !== authorId) {
+    if (assignee && assignee !== authorId && helpers.createNotification) {
       helpers.createNotification($app, {
         recipient: assignee,
         kind: 'mention',
