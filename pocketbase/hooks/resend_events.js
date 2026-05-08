@@ -4,12 +4,24 @@ routerAdd('POST', '/api/webhook/resend', (e) => {
     return e.unauthorizedError('Webhook secret not configured.')
   }
 
+  let wh = {}
   try {
-    const wh = require(__hooks + '/lib_webhooks.js')
+    wh = require('./lib_webhooks.js')
+  } catch (_) {}
+  if (!wh || !wh.verifySvixSignature) {
+    try {
+      wh = require(__hooks + '/lib_webhooks.js')
+    } catch (_) {}
+  }
+  if (!wh || !wh.verifySvixSignature) {
+    $app.logger().warn('lib_webhooks not loadable')
+    return e.unauthorizedError('Webhook helper unavailable')
+  }
+  try {
     wh.verifySvixSignature(e, secret)
   } catch (err) {
-    $app.logger().warn('Signature validation failed', 'error', err.message)
-    return e.unauthorizedError(err.message)
+    $app.logger().warn('Signature validation failed', 'error', String((err && err.message) || err))
+    return e.unauthorizedError(String((err && err.message) || err))
   }
 
   const body = e.requestInfo().body || {}
