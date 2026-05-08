@@ -11,13 +11,8 @@
 onRecordCreate((e) => {
   let helpers = {}
   try {
-    helpers = require('lib_helpers')
+    helpers = require('./lib_helpers.js')
   } catch (_) {}
-  if (!helpers || !helpers.findSlaPolicyForPriority) {
-    try {
-      helpers = require('./lib_helpers')
-    } catch (_) {}
-  }
   if (!helpers || !helpers.findSlaPolicyForPriority) {
     try {
       helpers = require(__hooks + '/lib_helpers.js')
@@ -52,13 +47,8 @@ onRecordCreate((e) => {
 onRecordAfterCreateSuccess((e) => {
   let helpers = {}
   try {
-    helpers = require('lib_helpers')
+    helpers = require('./lib_helpers.js')
   } catch (_) {}
-  if (!helpers || !helpers.findMatchingAssignmentRule) {
-    try {
-      helpers = require('./lib_helpers')
-    } catch (_) {}
-  }
   if (!helpers || !helpers.findMatchingAssignmentRule) {
     try {
       helpers = require(__hooks + '/lib_helpers.js')
@@ -112,13 +102,8 @@ onRecordAfterCreateSuccess((e) => {
   try {
     let emailHelpers = {}
     try {
-      emailHelpers = require('lib_email')
+      emailHelpers = require('./lib_email.js')
     } catch (_) {}
-    if (!emailHelpers || !emailHelpers.sendEmail) {
-      try {
-        emailHelpers = require('./lib_email')
-      } catch (_) {}
-    }
     if (!emailHelpers || !emailHelpers.sendEmail) {
       try {
         emailHelpers = require(__hooks + '/lib_email.js')
@@ -176,13 +161,8 @@ onRecordUpdate((e) => {
 onRecordAfterUpdateSuccess((e) => {
   let helpers = {}
   try {
-    helpers = require('lib_helpers')
+    helpers = require('./lib_helpers.js')
   } catch (_) {}
-  if (!helpers || !helpers.createNotification) {
-    try {
-      helpers = require('./lib_helpers')
-    } catch (_) {}
-  }
   if (!helpers || !helpers.createNotification) {
     try {
       helpers = require(__hooks + '/lib_helpers.js')
@@ -424,13 +404,8 @@ onRecordCreate((e) => {
 
         let emailHelper = {}
         try {
-          emailHelper = require('lib_email')
+          emailHelper = require('./lib_email.js')
         } catch (_) {}
-        if (!emailHelper || !emailHelper.sendEmail) {
-          try {
-            emailHelper = require('./lib_email')
-          } catch (_) {}
-        }
         if (!emailHelper || !emailHelper.sendEmail) {
           try {
             emailHelper = require(__hooks + '/lib_email.js')
