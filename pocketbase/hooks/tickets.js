@@ -9,7 +9,7 @@
  */
 
 onRecordCreate((e) => {
-  const helpers = require(`${__hooks}/_helpers.js`)
+  const helpers = require(`${__hooks}/lib_helpers.js`)
   const ticket = e.record
 
   const priority = ticket.get('priority')
@@ -35,7 +35,7 @@ onRecordCreate((e) => {
 }, 'tickets')
 
 onRecordAfterCreateSuccess((e) => {
-  const helpers = require(`${__hooks}/_helpers.js`)
+  const helpers = require(`${__hooks}/lib_helpers.js`)
   const ticket = e.record
 
   // Aplicar regra de assignment (se nenhum assignee já estiver definido)
@@ -80,7 +80,7 @@ onRecordAfterCreateSuccess((e) => {
 
   // Notificações por Email
   try {
-    const emailHelpers = require(`${__hooks}/_email.js`)
+    const emailHelpers = require(`${__hooks}/lib_email.js`)
     const requesterId = ticket.get('requester')
 
     if (requesterId) {
@@ -127,7 +127,7 @@ onRecordUpdate((e) => {
 }, 'tickets')
 
 onRecordAfterUpdateSuccess((e) => {
-  const helpers = require(`${__hooks}/_helpers.js`)
+  const helpers = require(`${__hooks}/lib_helpers.js`)
   const ticket = e.record
   const original = ticket.original()
   if (!original) {
@@ -355,7 +355,7 @@ onRecordCreate((e) => {
           'http://localhost:5173'
         const resetUrl = `${baseUrl}/login?email=${encodeURIComponent(email)}`
 
-        const emailHelper = require(__dirname + '/_email.js')
+        const emailHelper = require(__dirname + '/lib_email.js')
         const { html, text } = emailHelper.renderWelcome(user, resetUrl)
 
         emailHelper.sendEmail($app, {

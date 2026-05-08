@@ -6,7 +6,7 @@ routerAdd('POST', '/api/inbound/email', (e) => {
     }
 
     try {
-      const wh = require(__hooks + '/_webhooks.js')
+      const wh = require(__hooks + '/lib_webhooks.js')
       wh.verifySvixSignature(e, secret)
     } catch (err) {
       $app.logger().warn('Signature validation failed', 'error', err.message)

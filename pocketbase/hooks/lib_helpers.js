@@ -1,12 +1,10 @@
 /// <reference path="../pb_data/types.d.ts" />
 
 /**
- * Helpers compartilhados entre hooks. Carregados antes dos demais
- * via prefixo "_". O PocketBase carrega arquivos *.pb.js em ordem
- * alfabética; tudo definido em $app.cache aqui fica disponível.
+ * Helpers compartilhados entre hooks.
  *
  * Como usar nos outros hooks:
- *   const helpers = require(`${__hooks}/_helpers.pb.js`)
+ *   const helpers = require(`${__hooks}/lib_helpers.js`)
  */
 
 /**

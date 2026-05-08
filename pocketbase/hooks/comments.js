@@ -15,7 +15,7 @@ onRecordCreate((e) => {
 }, 'comments')
 
 onRecordAfterCreateSuccess((e) => {
-  const helpers = require(`${__hooks}/_helpers.js`)
+  const helpers = require(`${__hooks}/lib_helpers.js`)
   const comment = e.record
   const ticketId = comment.get('ticket')
   const authorId = comment.get('author')
@@ -89,7 +89,7 @@ onRecordAfterCreateSuccess((e) => {
       if (isStaff && requester && requester !== authorId && comment.get('source') !== 'email') {
         const requesterRecord = $app.findRecordById('users', requester)
         if (requesterRecord && requesterRecord.get('email')) {
-          const emailHelpers = require(`${__hooks}/_email.js`)
+          const emailHelpers = require(`${__hooks}/lib_email.js`)
           const authorRecord = $app.findRecordById('users', authorId)
           const { html, text } = emailHelpers.renderTicketReply(ticket, comment, authorRecord)
           emailHelpers.sendEmail($app, {
