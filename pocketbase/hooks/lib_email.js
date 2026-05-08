@@ -8,7 +8,13 @@ module.exports = {
     const fromEmail = $os.getenv('RESEND_FROM') || 'support@example.com'
 
     if (!apiKey) {
-      console.warn('RESEND_API_KEY not configured. Skipping email send.')
+      app
+        .logger()
+        .warn(
+          'missing_api_key',
+          'message',
+          String('RESEND_API_KEY not configured. Skipping email send.'),
+        )
       return
     }
 
@@ -27,7 +33,13 @@ module.exports = {
     if (userStatus === 'bounced' || userStatus === 'complained') {
       app
         .logger()
-        .warn('email_skipped_status', 'to', String(options.to || ''), 'userStatus', userStatus)
+        .warn(
+          'email_skipped_status',
+          'to',
+          String(options.to || ''),
+          'userStatus',
+          String(userStatus),
+        )
       try {
         const logCol = app.findCollectionByNameOrId('email_log')
         const logRecord = new Record(logCol)
@@ -36,7 +48,7 @@ module.exports = {
         logRecord.set('from', String(fromEmail || ''))
         logRecord.set('subject', String(options.subject || ''))
         logRecord.set('status', 'skipped')
-        logRecord.set('error', `Skipped due to ${userStatus} status`)
+        logRecord.set('error', String(`Skipped due to ${userStatus} status`))
         if (options.ticketId) logRecord.set('ticket', String(options.ticketId))
         if (options.commentId) logRecord.set('comment', String(options.commentId))
         app.save(logRecord)
@@ -86,25 +98,51 @@ module.exports = {
         if (options.commentId) {
           try {
             const comment = app.findRecordById('comments', options.commentId)
-            comment.set('message_id', msgId)
+            comment.set('message_id', String(msgId))
             app.save(comment)
           } catch (err) {
-            console.error('Failed to update comment with message_id:', err)
+            app
+              .logger()
+              .error(
+                'failed_to_update_comment',
+                'error',
+                String(err),
+                'commentId',
+                String(options.commentId),
+              )
           }
         }
       } else {
         status = 'failed'
         errorMsg = res.json?.message || `HTTP ${res.statusCode}`
-        console.error('Resend API Error:', errorMsg)
+        app
+          .logger()
+          .error(
+            'resend_api_error',
+            'error',
+            String(errorMsg),
+            'statusCode',
+            String(res.statusCode),
+          )
       }
     } catch (err) {
       status = 'failed'
       errorMsg = err.message || String(err)
-      console.error('Failed to send email:', err)
+      app
+        .logger()
+        .error(
+          'failed_to_send_email',
+          'error',
+          String(err.message || err),
+          'stack',
+          String(err.stack || ''),
+        )
     }
 
     try {
-      app.logger().info('email_log_save_attempt', 'to', String(options.to || ''), 'status', status)
+      app
+        .logger()
+        .info('email_log_save_attempt', 'to', String(options.to || ''), 'status', String(status))
       const emailLogCol = app.findCollectionByNameOrId('email_log')
       const logRecord = new Record(emailLogCol)
       logRecord.set('direction', 'out')
@@ -113,7 +151,7 @@ module.exports = {
       logRecord.set('subject', String(options.subject || ''))
       logRecord.set('body_text', String(options.text || ''))
       logRecord.set('body_html', String(options.html || ''))
-      logRecord.set('status', status)
+      logRecord.set('status', String(status))
       if (resendId) logRecord.set('resend_id', String(resendId))
       if (errorMsg) logRecord.set('error', String(errorMsg))
       if (options.ticketId) logRecord.set('ticket', String(options.ticketId))
