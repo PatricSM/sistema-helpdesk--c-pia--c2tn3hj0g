@@ -47,11 +47,20 @@ export default function EmbedForm() {
         lgpd: formData.lgpd,
       })
 
+      console.log('embed submission response:', record)
+
       if (record.ticket) {
         setTicketId(record.ticket)
         setStatus('success')
+      } else if (record.error === 'rate_limit') {
+        setStatus('error')
+        setErrorMessage('Muitas tentativas. Tente novamente em uma hora.')
+      } else if (record.error === 'invalid_key') {
+        setStatus('error')
+        setErrorMessage('Configuração indisponível. Contate o suporte.')
       } else {
-        throw new Error('Não foi possível enviar. Tente novamente em alguns instantes.')
+        setStatus('error')
+        setErrorMessage('Não foi possível enviar. Tente novamente.')
       }
     } catch (err: any) {
       setStatus('error')
