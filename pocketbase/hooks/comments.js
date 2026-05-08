@@ -96,23 +96,59 @@ onRecordAfterCreateSuccess((e) => {
 
     // Notificação por Email para o requester (se a resposta for de um agente/admin)
     try {
+      $app
+        .logger()
+        .info(
+          'comment_email_check',
+          'isStaff',
+          String(isStaff),
+          'hasRequester',
+          String(!!requester),
+          'requesterIsAuthor',
+          String(requester === authorId),
+          'source',
+          String(comment.get('source') || ''),
+        )
       if (isStaff && requester && requester !== authorId && comment.get('source') !== 'email') {
         const requesterRecord = $app.findRecordById('users', requester)
-        if (requesterRecord && requesterRecord.get('email')) {
+        const requesterEmail = requesterRecord && requesterRecord.get('email')
+        $app
+          .logger()
+          .info('comment_email_step1', 'requesterEmail', String(requesterEmail || 'none'))
+        if (requesterRecord && requesterEmail) {
           let emailHelpers = {}
+          let requireOk = 'none'
           try {
             emailHelpers = require('./lib_email.js')
-          } catch (_) {}
+            requireOk = 'relative'
+          } catch (errA) {
+            $app.logger().warn('comment_require_relative_failed', 'error', String(errA))
+          }
           if (!emailHelpers || !emailHelpers.sendEmail) {
             try {
               emailHelpers = require(__hooks + '/lib_email.js')
-            } catch (_) {}
+              requireOk = '__hooks'
+            } catch (errB) {
+              $app.logger().warn('comment_require_hooks_failed', 'error', String(errB))
+            }
           }
+          $app
+            .logger()
+            .info(
+              'comment_email_require_result',
+              'requireOk',
+              requireOk,
+              'hasSendEmail',
+              String(!!(emailHelpers && emailHelpers.sendEmail)),
+              'hasRenderReply',
+              String(!!(emailHelpers && emailHelpers.renderTicketReply)),
+            )
           if (emailHelpers && emailHelpers.sendEmail && emailHelpers.renderTicketReply) {
             const authorRecord = $app.findRecordById('users', authorId)
             const { html, text } = emailHelpers.renderTicketReply(ticket, comment, authorRecord)
+            $app.logger().info('comment_email_calling_send', 'to', requesterEmail)
             emailHelpers.sendEmail($app, {
-              to: requesterRecord.get('email'),
+              to: requesterEmail,
               subject: `Re: [${ticket.id}] ${ticket.get('title')}`,
               html,
               text,
@@ -120,11 +156,20 @@ onRecordAfterCreateSuccess((e) => {
               ticketId: ticket.id,
               commentId: comment.id,
             })
+            $app.logger().info('comment_email_sent_returned')
           }
         }
       }
     } catch (err) {
-      console.error('[comment email notification error]', err)
+      $app
+        .logger()
+        .error(
+          'comment_email_outer_exception',
+          'error',
+          String(err),
+          'stack',
+          String(err && err.stack ? err.stack : ''),
+        )
     }
   } else {
     // Comentário interno: notificar somente o assignee (não o cliente)
