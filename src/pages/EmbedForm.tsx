@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { CheckCircle2, AlertCircle } from 'lucide-react'
 import { TicketFormFields } from '@/components/TicketFormFields'
+import pb from '@/lib/pocketbase/client'
 
 export default function EmbedForm() {
   const { key } = useParams()
@@ -35,32 +36,28 @@ export default function EmbedForm() {
     setErrorMessage('')
 
     try {
-      const res = await fetch(`/api/embed/tickets`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          embed_key: key,
-          honeypot: formData.website,
-          loaded_at: formLoadedAt,
-          name: formData.name,
-          email: formData.email,
-          title: formData.subject,
-          description: formData.description,
-          lgpd: formData.lgpd,
-        }),
+      const record = await pb.collection('embed_submissions').create({
+        embed_key: key,
+        honeypot: formData.website,
+        loaded_at: formLoadedAt,
+        name: formData.name,
+        email: formData.email,
+        title: formData.subject,
+        description: formData.description,
+        lgpd: formData.lgpd,
       })
 
-      const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data.message || 'Erro ao enviar chamado. Tente novamente.')
+      if (record.ticket) {
+        setTicketId(record.ticket)
+        setStatus('success')
+      } else {
+        throw new Error('Não foi possível enviar. Tente novamente em alguns instantes.')
       }
-
-      setTicketId(data.ticket_id)
-      setStatus('success')
     } catch (err: any) {
       setStatus('error')
-      setErrorMessage(err.message)
+      setErrorMessage(
+        err.message || 'Não foi possível enviar. Tente novamente em alguns instantes.',
+      )
     }
   }
 

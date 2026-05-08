@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { AlertCircle, CheckCircle2 } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { TicketFormFields, type TicketFormData } from './TicketFormFields'
+import pb from '@/lib/pocketbase/client'
 
 interface AskQuestionDialogProps {
   open: boolean
@@ -68,32 +69,28 @@ export function AskQuestionDialog({ open, onOpenChange }: AskQuestionDialogProps
     setErrorMessage('')
 
     try {
-      const res = await fetch(`/api/embed/tickets`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          embed_key: embedKey,
-          honeypot: formData.website,
-          loaded_at: formLoadedAt,
-          name: formData.name,
-          email: formData.email,
-          title: formData.subject,
-          description: formData.description,
-          lgpd: formData.lgpd,
-        }),
+      const record = await pb.collection('embed_submissions').create({
+        embed_key: embedKey,
+        honeypot: formData.website,
+        loaded_at: formLoadedAt,
+        name: formData.name,
+        email: formData.email,
+        title: formData.subject,
+        description: formData.description,
+        lgpd: formData.lgpd,
       })
 
-      const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data.message || 'Erro ao enviar dúvida. Tente novamente.')
+      if (record.ticket) {
+        setSubmittedEmail(formData.email)
+        setStatus('success')
+      } else {
+        throw new Error('Não foi possível enviar. Tente novamente em alguns instantes.')
       }
-
-      setSubmittedEmail(formData.email)
-      setStatus('success')
     } catch (err: any) {
       setStatus('error')
-      setErrorMessage(err.message)
+      setErrorMessage(
+        err.message || 'Não foi possível enviar. Tente novamente em alguns instantes.',
+      )
     }
   }
 

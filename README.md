@@ -31,7 +31,7 @@ O projeto utiliza variáveis de ambiente para configuração de serviços extern
 
 ### Modal "Ainda Tenho Dúvida" e iframe embed
 
-O endpoint `/api/embed/tickets` aceita requisições de qualquer origem (CORS *). A configuração "Application URL" no PocketBase Admin não é mais necessária para este fluxo específico.
+O fluxo de criação pública de tickets agora utiliza a collection nativa `embed_submissions` em conjunto com hooks de backend. O antigo endpoint `/api/embed/tickets` foi removido. Submissões via SDK passam pelas validações de segurança (honeypot, rate limit, time-check) e são processadas automaticamente.
 
 ### Configuração do Resend
 
@@ -45,12 +45,14 @@ Para o funcionamento correto dos e-mails transacionais e recebimento de tickets 
 Para rastrear o status de entrega, bounce e falhas de e-mails enviados:
 - **Webhook Events URL**: Configure a **Webhook URL** no painel do Resend para eventos (e.g. `email.delivered`, `email.bounced`, `email.complained`): `https://[APP_DOMAIN]/api/webhook/resend`
 
+> **TODO**: Os endpoints customizados `/api/inbound/email` e `/api/webhook/resend` atualmente enfrentam a mesma restrição do Edge Proxy que impedia o `/api/embed/tickets`. Será necessária uma atualização arquitetural futura (ex: rotas via SDK/Collections ou gateway) para reativar o recebimento via webhooks.
+
 ### Configuração do Formulário Público (Embed Form & Docs)
 
 Para o funcionamento do formulário de abertura de chamados via Embed ou na Base de Conhecimento Pública, é necessário configurar a chave de embed:
 - **Gerar Embed Key**: Acesse o painel de configurações do sistema (Settings -> Embed Forms), crie um novo Embed Form e copie a chave gerada.
 - **Configurar Variável de Ambiente**: Defina a chave copiada na variável `VITE_DOCS_EMBED_KEY` no arquivo `.env`.
-- **Origens Permitidas**: A listagem de domínios em "Allowed Origins" serve apenas para anotação interna. O endpoint de embed agora é aberto (CORS *) para facilitar a integração sem gerenciar domínios complexos.
+- **Origens Permitidas**: A listagem de domínios em "Allowed Origins" serve apenas para anotação interna. O fluxo utiliza chamadas padrão do SDK de forma nativa.
 
 ### Proteção Anti-Spam (Embed Form)
 
