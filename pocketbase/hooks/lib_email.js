@@ -4,8 +4,14 @@
 
 module.exports = {
   sendEmail(app, options) {
-    const apiKey = $os.getenv('RESEND_API_KEY')
-    const fromEmail = $os.getenv('RESEND_FROM') || 'support@example.com'
+    const apiKey =
+      $os.getenv('RESEND_API_KEY') ||
+      (typeof $secrets !== 'undefined' && $secrets.get('RESEND_API_KEY')) ||
+      ''
+    const fromEmail =
+      $os.getenv('RESEND_FROM') ||
+      (typeof $secrets !== 'undefined' && $secrets.get('RESEND_FROM')) ||
+      'support@example.com'
 
     if (!apiKey) {
       app
@@ -177,7 +183,10 @@ module.exports = {
   },
 
   replyToFor(ticketId) {
-    const inboundDomain = $os.getenv('RESEND_INBOUND_DOMAIN') || 'example.com'
+    const inboundDomain =
+      $os.getenv('RESEND_INBOUND_DOMAIN') ||
+      (typeof $secrets !== 'undefined' && $secrets.get('RESEND_INBOUND_DOMAIN')) ||
+      'example.com'
     return `support+${ticketId}@${inboundDomain}`
   },
 
