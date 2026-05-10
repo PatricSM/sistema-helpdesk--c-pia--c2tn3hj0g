@@ -399,6 +399,7 @@ onRecordCreate((e) => {
         const baseUrl =
           $os.getenv('EMBED_BASE_URL') ||
           $os.getenv('VITE_EMBED_BASE_URL') ||
+          (typeof $secrets !== 'undefined' && $secrets.get('EMBED_BASE_URL')) ||
           'http://localhost:5173'
         const resetUrl = `${baseUrl}/login?email=${encodeURIComponent(email)}`
 
