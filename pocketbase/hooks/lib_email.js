@@ -4,14 +4,57 @@
 
 module.exports = {
   sendEmail(app, options) {
-    const apiKey =
-      $os.getenv('RESEND_API_KEY') ||
-      (typeof $secrets !== 'undefined' ? $secrets.get('RESEND_API_KEY') : '') ||
-      ''
-    const fromEmail =
-      $os.getenv('RESEND_FROM') ||
-      (typeof $secrets !== 'undefined' ? $secrets.get('RESEND_FROM') : '') ||
-      'support@example.com'
+    const envApiKey = $os.getenv('RESEND_API_KEY') || ''
+    const envFromEmail = $os.getenv('RESEND_FROM') || ''
+    const hasSecrets = typeof $secrets !== 'undefined'
+    let secretsApiKey = ''
+    let secretsFrom = ''
+    let secretsError = ''
+
+    if (hasSecrets) {
+      try {
+        secretsApiKey = $secrets.get('RESEND_API_KEY') || ''
+        secretsFrom = $secrets.get('RESEND_FROM') || ''
+      } catch (e) {
+        secretsError = String(e.message || e)
+      }
+    }
+
+    const apiKey = envApiKey || secretsApiKey || ''
+    const fromEmail = envFromEmail || secretsFrom || 'support@example.com'
+
+    const debugInfo = JSON.stringify({
+      envApiKey_len: envApiKey.length,
+      envFromEmail_len: envFromEmail.length,
+      hasSecrets: hasSecrets,
+      secretsApiKey_len: secretsApiKey.length,
+      secretsFrom_len: secretsFrom.length,
+      secretsError: secretsError,
+      finalApiKey_len: apiKey.length,
+    })
+
+    try {
+      const logCol = app.findCollectionByNameOrId('email_log')
+      const logRecord = new Record(logCol)
+      logRecord.set('direction', 'out')
+      logRecord.set('to', String(options.to || ''))
+      logRecord.set('from', String(fromEmail))
+      logRecord.set('subject', '[DEBUG] ' + String(options.subject || ''))
+      logRecord.set('status', 'queued')
+      if (options.ticketId) logRecord.set('ticket', String(options.ticketId))
+      logRecord.set('debug_info', debugInfo)
+      app.save(logRecord)
+    } catch (e) {
+      app
+        .logger()
+        .error(
+          'debug_log_save_failed',
+          'error',
+          String((e && e.message) || e),
+          'stack',
+          String((e && e.stack) || ''),
+        )
+    }
 
     if (!apiKey) {
       app
