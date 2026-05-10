@@ -1,5 +1,5 @@
 /**
- * Utilitário para envio de emails via Resend e log no PocketBase.
+ * Utilitário  para envio de emails via Resend e log no PocketBase.
  */
 
 module.exports = {
